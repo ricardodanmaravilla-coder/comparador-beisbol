@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comparador de Béisbol con Predicción Inteligente</title>
+    <title>Comparador Sabermétrico Profesional (MLB & LMB)</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -106,14 +106,13 @@
         .perdedor {
             color: #f44336;
         }
-        /* Nueva sección de pronósticos */
         .tarjeta-prediccion {
             background-color: #252525;
             border: 2px dashed #4CAF50;
             border-radius: 12px;
             padding: 15px;
             text-align: center;
-            display: none; /* Se oculta hasta que se haga la comparación */
+            display: none;
         }
         .tarjeta-prediccion h2 {
             color: #4CAF50;
@@ -147,7 +146,7 @@
 <body>
 
     <div class="app-container">
-        <h1>⚾ Comparador Total Live</h1>
+        <h1>⚾ Comparador Sabermétrico</h1>
 
         <div class="selector-zona">
             <select id="equipo1">
@@ -216,14 +215,14 @@
                 <div id="bateoE2" class="col-equipo">-</div>
             </div>
             <div class="fila">
+                <div id="opsE1" class="col-equipo">-</div>
+                <div class="col-metrica">Poder total (OPS)</div>
+                <div id="opsE2" class="col-equipo">-</div>
+            </div>
+            <div class="fila">
                 <div id="hrE1" class="col-equipo">-</div>
                 <div class="col-metrica">Home Runs (HR)</div>
                 <div id="hrE2" class="col-equipo">-</div>
-            </div>
-            <div class="fila">
-                <div id="sbE1" class="col-equipo">-</div>
-                <div class="col-metrica">Bases Robadas (SB)</div>
-                <div id="sbE2" class="col-equipo">-</div>
             </div>
             <div class="fila">
                 <div id="eraE1" class="col-equipo">-</div>
@@ -231,21 +230,20 @@
                 <div id="eraE2" class="col-equipo">-</div>
             </div>
             <div class="fila">
-                <div id="soE1" class="col-equipo">-</div>
-                <div class="col-metrica">Ponches (SO)</div>
-                <div id="soE2" class="col-equipo">-</div>
+                <div id="whipE1" class="col-equipo">-</div>
+                <div class="col-metrica">Control Pitcheo (WHIP)</div>
+                <div id="whipE2" class="col-equipo">-</div>
             </div>
         </div>
 
-        <!-- AQUÍ SE MOSTRARÁ EL PRONÓSTICO DE LA IA -->
         <div class="tarjeta-prediccion" id="panelPrediccion">
-            <h2>🔮 Pronóstico Sabermétrico</h2>
+            <h2>🔮 Pronóstico Sabermétrico Avanzado</h2>
             <div class="resultado-prediccion">
                 Ganador más probable: 
                 <span id="txtGanador" class="destaque-ganador">-</span>
             </div>
             <div class="resultado-prediccion" style="margin-top: 15px;">
-                Total de carreras en el juego: 
+                Total de carreras estimado: 
                 <span id="txtCarreras" class="destaque-carreras">-</span>
             </div>
         </div>
@@ -253,187 +251,5 @@
 
     <script>
         window.onload = async function() {
-            try {
-                const res = await fetch('https://statsapi.mlb.com/api/v1/teams?sportId=1');
-                const data = await res.json();
-                const equiposMLB = data.teams.sort((a, b) => a.name.localeCompare(b.name));
+            try
                 
-                const grupo1 = document.getElementById('mlb-group1');
-                const grupo2 = document.getElementById('mlb-group2');
-                
-                grupo1.innerHTML = '';
-                grupo2.innerHTML = '';
-                
-                equiposMLB.forEach(equipo => {
-                    let opt1 = document.createElement('option');
-                    let opt2 = document.createElement('option');
-                    
-                    opt1.value = `mlb-${equipo.id}`;
-                    opt1.innerText = equipo.name;
-                    if(equipo.id === 147) opt1.selected = true;
-                    
-                    opt2.value = `mlb-${equipo.id}`;
-                    opt2.innerText = equipo.name;
-                    if(equipo.id === 119) opt2.selected = true;
-                    
-                    grupo1.appendChild(opt1);
-                    grupo2.appendChild(opt2);
-                });
-            } catch (error) {
-                console.error("Error cargando los equipos de la MLB", error);
-            }
-        };
-
-        async function obtenerEstadisticas(valorSeleccionado) {
-            if (valorSeleccionado.startsWith("mlb-")) {
-                const teamId = valorSeleccionado.split("-")[1];
-                const [resBateo, resPitcheo] = await Promise.all([
-                    fetch(`https://statsapi.mlb.com/api/v1/teams/${teamId}/stats?stats=season&group=hitting`),
-                    fetch(`https://statsapi.mlb.com/api/v1/teams/${teamId}/stats?stats=season&group=pitching`)
-                ]);
-
-                const dataBateo = await resBateo.json();
-                const dataPitcheo = await resPitcheo.json();
-
-                const statsBateo = dataBateo.stats[0]?.splits[0]?.stat || {};
-                const statsPitcheo = dataPitcheo.stats[0]?.splits[0]?.stat || {};
-
-                return {
-                    bateo: parseFloat(statsBateo.avg || 0),
-                    hr: parseInt(statsBateo.homeRuns || 0),
-                    sb: parseInt(statsBateo.stolenBases || 0),
-                    era: parseFloat(statsPitcheo.era || 0),
-                    so: parseInt(statsPitcheo.strikeOuts || 0)
-                };
-            } else {
-                const lmbKey = valorSeleccionado.split("-")[1];
-                const datosLMB = {
-                    diablos:     { bateo: 0.295, hr: 180, sb: 115, era: 4.10, so: 1120 },
-                    sultanes:    { bateo: 0.282, hr: 145, sb: 95,  era: 4.35, so: 1050 },
-                    pericos:     { bateo: 0.278, hr: 130, sb: 88,  era: 4.60, so: 980 },
-                    toros:       { status: 0.270, hr: 155, sb: 104, era: 4.15, so: 1090 },
-                    acereros:    { bateo: 0.275, hr: 160, sb: 90,  era: 3.95, so: 1110 },
-                    leones:      { bateo: 0.268, hr: 125, sb: 100, era: 3.70, so: 1060 },
-                    olmecas:     { bateo: 0.262, hr: 110, sb: 92,  era: 3.65, so: 1020 },
-                    aguila:      { bateo: 0.272, hr: 135, sb: 105, era: 4.45, so: 990 },
-                    guerreros:   { bateo: 0.280, hr: 150, sb: 87,  era: 4.90, so: 950 },
-                    tigres:      { bateo: 0.255, hr: 115, sb: 112, era: 4.75, so: 930 },
-                    saraperos:   { bateo: 0.285, hr: 165, sb: 80,  era: 4.80, so: 1010 },
-                    rieleros:    { bateo: 0.274, hr: 140, sb: 98,  era: 4.65, so: 970 },
-                    algodoneros: { bateo: 0.271, hr: 138, sb: 101, era: 3.88, so: 1080 },
-                    durango:     { bateo: 0.269, hr: 120, sb: 94,  era: 4.50, so: 940 },
-                    queretaro:   { bateo: 0.265, hr: 122, sb: 89,  era: 4.55, so: 920 },
-                    chihuahua:   { bateo: 0.260, hr: 118, sb: 85,  era: 4.70, so: 910 },
-                    tecolotes:   { bateo: 0.276, hr: 142, sb: 108, era: 4.05, so: 1040 },
-                    bravos:      { bateo: 0.267, hr: 130, sb: 97,  era: 5.10, so: 960 },
-                    piratas:     { bateo: 0.252, hr: 105, sb: 78,  era: 4.85, so: 890 },
-                    charros:     { bateo: 0.273, hr: 148, sb: 86,  era: 4.40, so: 1025 }
-                };
-                return datosLMB[lmbKey] || { bateo: 0.260, hr: 130, sb: 90, era: 4.20, so: 950 };
-            }
-        }
-
-        async function compararEquipos() {
-            const select1 = document.getElementById("equipo1");
-            const select2 = document.getElementById("equipo2");
-            
-            const e1 = select1.value;
-            const e2 = select2.value;
-            
-            const nombreE1 = select1.options[select1.selectedIndex].text;
-            const nombreE2 = select2.options[select2.selectedIndex].text;
-            
-            const boton = document.getElementById("btnComparar");
-
-            boton.innerText = "Calculando Probabilidades...";
-            boton.disabled = true;
-
-            try {
-                const [datosE1, datosE2] = await Promise.all([
-                    obtenerEstadisticas(e1),
-                    obtenerEstadisticas(e2)
-                ]);
-
-                document.getElementById("bateoE1").innerText = datosE1.bateo.toFixed(3);
-                document.getElementById("bateoE2").innerText = datosE2.bateo.toFixed(3);
-                
-                document.getElementById("hrE1").innerText = datosE1.hr;
-                document.getElementById("hrE2").innerText = datosE2.hr;
-
-                document.getElementById("sbE1").innerText = datosE1.sb;
-                document.getElementById("sbE2").innerText = datosE2.sb;
-                
-                document.getElementById("eraE1").innerText = datosE1.era.toFixed(2);
-                document.getElementById("eraE2").innerText = datosE2.era.toFixed(2);
-
-                document.getElementById("soE1").innerText = datosE1.so;
-                document.getElementById("soE2").innerText = datosE2.so;
-                
-                aplicarColores("bateoE1", "bateoE2", datosE1.bateo > datosE2.bateo);
-                aplicarColores("hrE1", "hrE2", datosE1.hr > datosE2.hr);
-                aplicarColores("sbE1", "sbE2", datosE1.sb > datosE2.sb);
-                aplicarColores("eraE1", "eraE2", datosE1.era < datosE2.era);
-                aplicarColores("soE1", "soE2", datosE1.so > datosE2.so);
-
-                // --- ALGORITMO DE PREDICCIÓN ---
-                let puntosE1 = 0;
-                let puntosE2 = 0;
-
-                if (datosE1.bateo > datosE2.bateo) puntosE1++; else puntosE2++;
-                if (datosE1.hr > datosE2.hr) puntosE1++; else puntosE2++;
-                if (datosE1.sb > datosE2.sb) puntosE1++; else puntosE2++;
-                if (datosE1.era < datosE2.era) puntosE1++; else puntosE2++; // Menor ERA es mejor
-                if (datosE1.so > datosE2.so) puntosE1++; else puntosE2++;
-
-                let ganadorPredicho = "";
-                if (puntosE1 > puntosE2) {
-                    ganadorPredicho = nombreE1;
-                } else if (puntosE2 > puntosE1) {
-                    ganadorPredicho = nombreE2;
-                } else {
-                    // Desempate: El que tenga mejor Pitcheo (ERA) gana el juego apretado
-                    ganadorPredicho = (datosE1.era < datosE2.era) ? nombreE1 : nombreE2;
-                }
-
-                // --- FÓRMULA DE ESTIMACIÓN DE CARRERAS TOTALES ---
-                const promedioERA = (datosE1.era + datosE2.era) / 2;
-                const promedioBateo = (datosE1.bateo + datosE2.bateo) / 2;
-                const sumaHR = (datosE1.hr + datosE2.hr);
-
-                // El pitcheo base define las carreras base, el bateo alto y los jonrones las aumentan
-                let carrerasEstimadas = Math.round((promedioERA * 1.6) + (promedioBateo * 6) + (sumaHR / 190));
-                
-                // Límites lógicos para asegurar marcadores reales de béisbol
-                if (carrerasEstimadas < 4) carrerasEstimadas = 4;
-                if (carrerasEstimadas > 16) carrerasEstimadas = 13;
-
-                // Desplegar los resultados en la tarjeta de abajo
-                document.getElementById("txtGanador").innerText = "🏆 " + ganadorPredicho;
-                document.getElementById("txtCarreras").innerText = carrerasEstimadas + " Carreras";
-                document.getElementById("panelPrediccion").style.display = "block";
-
-            } catch (error) {
-                alert("Error al procesar el pronóstico.");
-                console.error(error);
-            } finally {
-                boton.innerText = "Comparar Equipos";
-                boton.disabled = false;
-            }
-        }
-
-        function aplicarColores(id1, id2, condicionGanaE1) {
-            const el1 = document.getElementById(id1);
-            const el2 = document.getElementById(id2);
-
-            if (condicionGanaE1) {
-                el1.className = "col-equipo ganador";
-                el2.className = "col-equipo perdedor";
-            } else {
-                el1.className = "col-equipo perdedor";
-                el2.className = "col-equipo ganador";
-            }
-        }
-    </script>
-</body>
-</html>
-
