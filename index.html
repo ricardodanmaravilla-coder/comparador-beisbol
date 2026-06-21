@@ -80,8 +80,8 @@
             const fechaVisual = `${day}/${month}/${year}`;
             
             document.getElementById("fecha-header").innerText = `Análisis Moneyball • ${fechaVisual}`;
-
-            const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${fechaAPI}&hydrate=probablePitcher(stats(type=season,season=${year})),team(stats(type=season,season=${year}))`;
+            // Agregamos el proxy al principio de la URL
+            const url = `https://corsproxy.io/?https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${fechaAPI}&hydrate=probablePitcher(stats(type=season,season=${year},group=pitching)),team(stats(type=season,season=${year},group=[hitting,pitching]))`;
             const respuesta = await fetch(url);
             const datos = await respuesta.json();
 
