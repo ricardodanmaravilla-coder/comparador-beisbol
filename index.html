@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comparador Sabermétrico Profesional (MLB & LMB)</title>
+    <title>Scanner Sabermétrico Profesional - MLB</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -15,7 +15,7 @@
             justify-content: center;
         }
         .app-container {
-            max-width: 450px;
+            max-width: 480px;
             width: 100%;
             background-color: #1e1e1e;
             padding: 20px;
@@ -26,16 +26,44 @@
             text-align: center;
             color: #4CAF50;
             font-size: 24px;
-            margin-bottom: 25px;
-        }
-        .selector-zona {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .selector-horario {
             margin-bottom: 20px;
+        }
+        .seccion-scanner {
+            background: linear-gradient(135deg, #2b2b1a 0%, #1e1e1e 100%);
+            border: 1px solid #FFD700;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .scanner-titulo {
+            color: #FFD700;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 0;
+            margin-bottom: 10px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .pick-info {
+            text-align: center;
+            font-size: 15px;
+            color: #ddd;
+        }
+        .pick-equipos {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            margin: 5px 0;
+        }
+        .pick-meta {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 10px;
         }
         .label-filtro {
             font-size: 11px;
@@ -45,6 +73,15 @@
             letter-spacing: 0.5px;
             display: block;
             margin-bottom: 5px;
+        }
+        .selector-zona {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .selector-horario {
+            margin-bottom: 20px;
         }
         select {
             width: 100%;
@@ -63,10 +100,6 @@
             background-color: #1e1e1e;
             color: #4CAF50;
             font-weight: bold;
-        }
-        option {
-            color: white;
-            background-color: #2a2a2a;
         }
         button {
             width: 100%;
@@ -102,26 +135,22 @@
             border-bottom: none;
         }
         .col-equipo {
-            width: 30%;
+            width: 33%;
             text-align: center;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 500;
         }
         .col-metrica {
-            width: 40%;
+            width: 34%;
             text-align: center;
-            font-size: 13px;
+            font-size: 12px;
             color: #aaa;
             font-weight: bold;
             text-transform: uppercase;
         }
-        .ganador {
-            color: #4CAF50;
-            font-weight: bold;
-        }
-        .perdedor {
-            color: #f44336;
-        }
+        .ganador { color: #4CAF50; font-weight: bold; }
+        .perdedor { color: #f44336; }
+        
         .tarjeta-prediccion {
             background-color: #252525;
             border: 2px dashed #4CAF50;
@@ -138,100 +167,38 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        .resultado-prediccion {
-            font-size: 15px;
-            margin: 10px 0;
-            color: #ddd;
-        }
-        .destaque-ganador {
-            color: #4CAF50;
-            font-weight: bold;
-            font-size: 18px;
-            display: block;
-            margin-top: 4px;
-        }
-        .destaque-carreras {
-            color: #FFD700;
-            font-weight: bold;
-            font-size: 22px;
-            display: block;
-            margin-top: 4px;
-        }
+        .destaque-ganador { color: #4CAF50; font-weight: bold; font-size: 18px; display: block; margin-top: 4px; }
+        .destaque-carreras { color: #FFD700; font-weight: bold; font-size: 22px; display: block; margin-top: 4px; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <h1>⚾ Comparador Sabermétrico</h1>
+        <h1>⚾ Scanner Sabermétrico</h1>
 
-        <span class="label-filtro">Selección de Equipos</span>
+        <!-- SECCIÓN INTELIGENTE DE ESCANEO DE HOY -->
+        <div class="seccion-scanner" id="panelScanner">
+            <h3 class="scanner-titulo">🔥 Top Pick de la Jornada (MLB)</h3>
+            <div id="scannerContenido" class="pick-info">
+                <span style="color: #aaa; font-size: 13px;">Analizando la cartelera de hoy en tiempo real...</span>
+            </div>
+        </div>
+
+        <span class="label-filtro">Simulador Manual / Ajuste Directo</span>
         <div class="selector-zona">
-            <select id="equipo1">
-                <optgroup id="mlb-group1" label="Grandes Ligas (MLB)">
-                    <option>Cargando escuadras...</option>
-                </optgroup>
-                <optgroup label="Liga Mexicana (LMB)">
-                    <option value="lmb-diablos">Diablos Rojos México</option>
-                    <option value="lmb-sultanes">Sultanes Monterrey</option>
-                    <option value="lmb-pericos">Pericos Puebla</option>
-                    <option value="lmb-toros">Toros Tijuana</option>
-                    <option value="lmb-acereros">Acereros Monclova</option>
-                    <option value="lmb-leones">Leones Yucatán</option>
-                    <option value="lmb-olmecas">Olmecas Tabasco</option>
-                    <option value="lmb-aguila">El Águila Veracruz</option>
-                    <option value="lmb-guerreros">Guerreros Oaxaca</option>
-                    <option value="lmb-tigres">Tigres Quintana Roo</option>
-                    <option value="lmb-saraperos">Saraperos Saltillo</option>
-                    <option value="lmb-rieleros">Rieleros Aguascalientes</option>
-                    <option value="lmb-algodoneros">Algodoneros Unión Laguna</option>
-                    <option value="lmb-durango">Caliente Durango</option>
-                    <option value="lmb-queretaro">Conspiradores Querétaro</option>
-                    <option value="lmb-chihuahua">Dorados Chihuahua</option>
-                    <option value="lmb-tecolotes">Tecolotes Dos Laredos</option>
-                    <option value="lmb-bravos">Bravos León</option>
-                    <option value="lmb-piratas">Piratas Campeche</option>
-                    <option value="lmb-charros">Charros Jalisco</option>
-                </optgroup>
-            </select>
-            
-            <select id="equipo2">
-                <optgroup id="mlb-group2" label="Grandes Ligas (MLB)">
-                    <option>Cargando escuadras...</option>
-                </optgroup>
-                <optgroup label="Liga Mexicana (LMB)">
-                    <option value="lmb-sultanes">Sultanes Monterrey</option>
-                    <option value="lmb-diablos">Diablos Rojos México</option>
-                    <option value="lmb-pericos">Pericos Puebla</option>
-                    <option value="lmb-toros">Toros Tijuana</option>
-                    <option value="lmb-acereros">Acereros Monclova</option>
-                    <option value="lmb-leones">Leones Yucatán</option>
-                    <option value="lmb-olmecas">Olmecas Tabasco</option>
-                    <option value="lmb-aguila">El Águila Veracruz</option>
-                    <option value="lmb-guerreros">Guerreros Oaxaca</option>
-                    <option value="lmb-tigres">Tigres Quintana Roo</option>
-                    <option value="lmb-saraperos">Saraperos Saltillo</option>
-                    <option value="lmb-rieleros">Rieleros Aguascalientes</option>
-                    <option value="lmb-algodoneros">Algodoneros Unión Laguna</option>
-                    <option value="lmb-durango">Caliente Durango</option>
-                    <option value="lmb-queretaro">Conspiradores Querétaro</option>
-                    <option value="lmb-chihuahua">Dorados Chihuahua</option>
-                    <option value="lmb-tecolotes">Tecolotes Dos Laredos</option>
-                    <option value="lmb-bravos">Bravos León</option>
-                    <option value="lmb-piratas">Piratas Campeche</option>
-                    <option value="lmb-charros">Charros Jalisco</option>
-                </optgroup>
-            </select>
+            <select id="equipo1"><optgroup id="mlb-group1" label="Cargando escuadras..."></optgroup></select>
+            <select id="equipo2"><optgroup id="mlb-group2" label="Cargando escuadras..."></optgroup></select>
         </div>
 
         <div class="selector-horario">
-            <span class="label-filtro">Horario y Medio Ambiente</span>
+            <span class="label-filtro">Horario de Juego Detectado/Ajustado</span>
             <select id="horarioJuego">
-                <option value="noche">🌃 Juego Nocturno (Reflectores / Aire Denso / Ventaja Pitcheo)</option>
-                <option value="dia">☀️ Juego Diurno (Sol Directo / Aire Cálido / Ventaja Bateo)</option>
+                <option value="noche">伺 Juego Nocturno (Reflectores / Ventaja Pitcheo)</option>
+                <option value="dia">☀️ Juego Diurno (Sol Directo / Ventaja Bateo)</option>
             </select>
         </div>
 
-        <button id="btnComparar" onclick="compararEquipos()">Simular Partido</button>
+        <button id="btnComparar" onclick="compararEquiposManual()">Simular Partido Selección</button>
 
         <div class="tabla-comparativa">
             <div class="fila">
@@ -241,12 +208,12 @@
             </div>
             <div class="fila">
                 <div id="opsE1" class="col-equipo">-</div>
-                <div class="col-metrica">Poder total (OPS)</div>
+                <div class="col-metrica">Poder (OPS)</div>
                 <div id="opsE2" class="col-equipo">-</div>
             </div>
             <div class="fila">
                 <div id="hrE1" class="col-equipo">-</div>
-                <div class="col-metrica">Home Runs (HR)</div>
+                <div class="col-metrica">Home Runs</div>
                 <div id="hrE2" class="col-equipo">-</div>
             </div>
             <div class="fila">
@@ -256,240 +223,219 @@
             </div>
             <div class="fila">
                 <div id="whipE1" class="col-equipo">-</div>
-                <div class="col-metrica">Control Pitcheo (WHIP)</div>
+                <div class="col-metrica">Control (WHIP)</div>
                 <div id="whipE2" class="col-equipo">-</div>
             </div>
         </div>
 
         <div class="tarjeta-prediccion" id="panelPrediccion">
-            <h2>🔮 Pronóstico Sabermétrico Avanzado</h2>
-            <div class="resultado-prediccion">
-                Ganador más probable: 
-                <span id="txtGanador" class="destaque-ganador">-</span>
+            <h2>🔮 Pronóstico Detallado</h2>
+            <div style="font-size: 15px; margin: 10px 0; color: #ddd;">
+                Ganador más probable: <span id="txtGanador" class="destaque-ganador">-</span>
             </div>
-            <div class="resultado-prediccion" style="margin-top: 15px;">
-                Total de carreras estimado: 
-                <span id="txtCarreras" class="destaque-carreras">-</span>
+            <div style="font-size: 15px; margin: 10px 0; color: #ddd;">
+                Total de carreras estimado: <span id="txtCarreras" class="destaque-carreras">-</span>
             </div>
         </div>
     </div>
 
     <script>
-        const listaRespaldolMLB = [
-            { id: 109, name: "Arizona Diamondbacks" }, { id: 144, name: "Atlanta Braves" },
-            { id: 110, name: "Baltimore Orioles" }, { id: 111, name: "Boston Red Sox" },
-            { id: 112, name: "Chicago Cubs" }, { id: 145, name: "Chicago White Sox" },
-            { id: 113, name: "Cincinnati Reds" }, { id: 114, name: "Cleveland Guardians" },
-            { id: 115, name: "Colorado Rockies" }, { id: 116, name: "Detroit Tigers" },
-            { id: 117, name: "Houston Astros" }, { id: 118, name: "Kansas City Royals" },
-            { id: 108, name: "Los Angeles Angels" }, { id: 119, name: "Los Angeles Dodgers" },
-            { id: 146, name: "Miami Marlins" }, { id: 158, name: "Milwaukee Brewers" },
-            { id: 142, name: "Minnesota Twins" }, { id: 121, name: "New York Mets" },
-            { id: 147, name: "New York Yankees" }, { id: 133, name: "Oakland Athletics" },
-            { id: 143, name: "Philadelphia Phillies" }, { id: 134, name: "Pittsburgh Pirates" },
-            { id: 135, name: "San Diego Padres" }, { id: 137, name: "San Francisco Giants" },
-            { id: 136, name: "Seattle Mariners" }, { id: 138, name: "St. Louis Cardinals" },
-            { id: 139, name: "Tampa Bay Rays" }, { id: 140, name: "Texas Rangers" },
-            { id: 141, name: "Toronto Blue Jays" }, { id: 120, name: "Washington Nationals" }
-        ];
+        const datosMlbInternos = {
+            "109": { name: "Arizona Diamondbacks", bateo: 0.250, ops: 0.730, hr: 165, era: 4.48, whip: 1.32 },
+            "144": { name: "Atlanta Braves", bateo: 0.258, ops: 0.760, hr: 220, era: 3.75, whip: 1.25 },
+            "110": { name: "Baltimore Orioles", bateo: 0.255, ops: 0.755, hr: 230, era: 3.90, whip: 1.24 },
+            "111": { name: "Boston Red Sox", bateo: 0.256, ops: 0.748, hr: 190, era: 4.10, whip: 1.28 },
+            "112": { name: "Chicago Cubs", bateo: 0.242, ops: 0.725, hr: 170, era: 3.80, whip: 1.26 },
+            "145": { name: "Chicago White Sox", bateo: 0.220, ops: 0.630, hr: 130, era: 4.90, whip: 1.45 },
+            "113": { name: "Cincinnati Reds", bateo: 0.244, ops: 0.715, hr: 185, era: 4.54, whip: 1.35 },
+            "114": { name: "Cleveland Guardians", bateo: 0.245, ops: 0.710, hr: 160, era: 3.70, whip: 1.22 },
+            "115": { name: "Colorado Rockies", bateo: 0.254, ops: 0.735, hr: 160, era: 5.40, whip: 1.51 },
+            "116": { name: "Detroit Tigers", bateo: 0.240, ops: 0.705, hr: 165, era: 3.95, whip: 1.26 },
+            "117": { name: "Houston Astros", bateo: 0.262, ops: 0.765, hr: 215, era: 3.85, whip: 1.25 },
+            "118": { name: "Kansas City Royals", bateo: 0.248, ops: 0.720, hr: 160, era: 3.90, whip: 1.26 },
+            "108": { name: "Los Angeles Angels", bateo: 0.245, ops: 0.718, hr: 195, era: 4.45, whip: 1.34 },
+            "119": { name: "Los Angeles Dodgers", bateo: 0.265, ops: 0.795, hr: 240, era: 3.78, whip: 1.22 },
+            "146": { name: "Miami Marlins", bateo: 0.241, ops: 0.690, hr: 140, era: 4.22, whip: 1.31 },
+            "158": { name: "Milwaukee Brewers", bateo: 0.244, ops: 0.730, hr: 175, era: 3.72, whip: 1.24 },
+            "142": { name: "Minnesota Twins", bateo: 0.246, ops: 0.745, hr: 195, era: 4.15, whip: 1.27 },
+            "121": { name: "New York Mets", bateo: 0.248, ops: 0.738, hr: 200, era: 4.12, whip: 1.30 },
+            "147": { name: "New York Yankees", bateo: 0.252, ops: 0.768, hr: 235, era: 3.74, whip: 1.24 },
+            "133": { name: "Oakland Athletics", bateo: 0.233, ops: 0.695, hr: 170, era: 4.70, whip: 1.40 },
+            "143": { name: "Philadelphia Phillies", bateo: 0.257, ops: 0.750, hr: 210, era: 3.65, whip: 1.20 },
+            "134": { name: "Pittsburgh Pirates", bateo: 0.236, ops: 0.685, hr: 155, era: 4.10, whip: 1.30 },
+            "135": { name: "San Diego Padres", bateo: 0.254, ops: 0.740, hr: 185, era: 3.92, whip: 1.26 },
+            "137": { name: "San Francisco Giants", bateo: 0.242, ops: 0.710, hr: 165, era: 4.02, whip: 1.29 },
+            "136": { name: "Seattle Mariners", bateo: 0.232, ops: 0.700, hr: 180, era: 3.48, whip: 1.15 },
+            "138": { name: "St. Louis Cardinals", bateo: 0.245, ops: 0.710, hr: 160, era: 4.18, whip: 1.33 },
+            "139": { name: "Tampa Bay Rays", bateo: 0.244, ops: 0.720, hr: 160, era: 3.92, whip: 1.24 },
+            "140": { name: "Texas Rangers", bateo: 0.252, ops: 0.745, hr: 195, era: 4.28, whip: 1.31 },
+            "141": { name: "Toronto Blue Jays", bateo: 0.242, ops: 0.722, hr: 165, era: 3.98, whip: 1.27 },
+            "120": { name: "Washington Nationals", bateo: 0.243, ops: 0.695, hr: 145, era: 4.55, whip: 1.38 }
+        };
 
         window.onload = async function() {
-            let equiposMLB = [];
-            try {
-                const res = await fetch('https://statsapi.mlb.com/api/v1/teams?sportId=1');
-                const data = await res.json();
-                equiposMLB = data.teams.sort((a, b) => a.name.localeCompare(b.name));
-            } catch (error) {
-                console.warn("API de MLB bloqueada por CORS. Cargando base local.");
-                equiposMLB = listaRespaldolMLB.sort((a, b) => a.name.localeCompare(b.name));
-            }
-            
+            configurarSelectores();
+            await escanearJornadaDeHoy();
+        };
+
+        function configurarSelectores() {
             const grupo1 = document.getElementById('mlb-group1');
             const grupo2 = document.getElementById('mlb-group2');
             grupo1.innerHTML = ''; grupo2.innerHTML = '';
             
-            equiposMLB.forEach(equipo => {
-                let opt1 = document.createElement('option');
-                let opt2 = document.createElement('option');
-                opt1.value = `mlb-${equipo.id}`; opt1.innerText = equipo.name; if(equipo.id === 147) opt1.selected = true;
-                opt2.value = `mlb-${equipo.id}`; opt2.innerText = equipo.name; if(equipo.id === 119) opt2.selected = true;
+            Object.keys(datosMlbInternos).sort((a,b) => datosMlbInternos[a].name.localeCompare(datosMlbInternos[b].name)).forEach(id => {
+                let opt1 = document.createElement('option'); let opt2 = document.createElement('option');
+                opt1.value = id; opt1.innerText = datosMlbInternos[id].name;
+                opt2.value = id; opt2.innerText = datosMlbInternos[id].name;
+                if(id == "147") opt1.selected = true; // Yankees por defecto
+                if(id == "119") opt2.selected = true; // Dodgers por defecto
                 grupo1.appendChild(opt1); grupo2.appendChild(opt2);
             });
-        };
+        }
 
-        async function obtenerEstadisticas(valorSeleccionado) {
-            if (valorSeleccionado.startsWith("mlb-")) {
-                const teamId = valorSeleccionado.split("-")[1];
-                try {
-                    const [resBateo, resPitcheo] = await Promise.all([
-                        fetch(`https://statsapi.mlb.com/api/v1/teams/${teamId}/stats?stats=season&group=hitting`),
-                        fetch(`https://statsapi.mlb.com/api/v1/teams/${teamId}/stats?stats=season&group=pitching`)
-                    ]);
-                    const dataBateo = await resBateo.json();
-                    const dataPitcheo = await resPitcheo.json();
-                    const statsBateo = dataBateo.stats[0]?.splits[0]?.stat || {};
-                    const statsPitcheo = dataPitcheo.stats[0]?.splits[0]?.stat || {};
+        // --- SISTEMA CORE DE SIMULACIÓN SABERMÉTRICA ---
+        function procesarSimulacion(idE1, idE2, horario) {
+            const d1 = datosMlbInternos[idE1];
+            const d2 = datosMlbInternos[idE2];
+            if(!d1 || !d2) return null;
 
-                    if (!statsBateo.avg && !statsPitcheo.era) throw new Error();
+            let puntosE1 = 0; let puntosE2 = 0;
 
-                    return {
-                        bateo: parseFloat(statsBateo.avg || 0),
-                        ops: parseFloat(statsBateo.ops || 0),
-                        hr: parseInt(statsBateo.homeRuns || 0),
-                        era: parseFloat(statsPitcheo.era || 0),
-                        whip: parseFloat(statsPitcheo.whip || 0)
-                    };
-                } catch (e) {
-                    const datosMlbInternos = {
-                        "109": { bateo: 0.250, ops: 0.730, hr: 165, era: 4.48, whip: 1.32 },
-                        "144": { bateo: 0.258, ops: 0.760, hr: 220, era: 3.75, whip: 1.25 },
-                        "110": { bateo: 0.255, ops: 0.755, hr: 230, era: 3.90, whip: 1.24 },
-                        "111": { bateo: 0.256, ops: 0.748, hr: 190, era: 4.10, whip: 1.28 },
-                        "112": { bateo: 0.242, ops: 0.725, hr: 170, era: 3.80, whip: 1.26 },
-                        "145": { bateo: 0.220, ops: 0.630, hr: 130, era: 4.90, whip: 1.45 },
-                        "113": { bateo: 0.244, ops: 0.715, hr: 185, era: 4.54, whip: 1.35 },
-                        "114": { bateo: 0.245, ops: 0.710, hr: 160, era: 3.70, whip: 1.22 },
-                        "115": { bateo: 0.254, ops: 0.735, hr: 160, era: 5.40, whip: 1.51 },
-                        "116": { bateo: 0.240, ops: 0.705, hr: 165, era: 3.95, whip: 1.26 },
-                        "117": { bateo: 0.262, ops: 0.765, hr: 215, era: 3.85, whip: 1.25 },
-                        "118": { bateo: 0.248, ops: 0.720, hr: 160, era: 3.90, whip: 1.26 },
-                        "108": { bateo: 0.245, ops: 0.718, hr: 195, era: 4.45, whip: 1.34 },
-                        "119": { bateo: 0.265, ops: 0.795, hr: 240, era: 3.78, whip: 1.22 },
-                        "146": { bateo: 0.241, ops: 0.690, hr: 140, era: 4.22, whip: 1.31 },
-                        "158": { bateo: 0.244, ops: 0.730, hr: 175, era: 3.72, whip: 1.24 },
-                        "142": { bateo: 0.246, ops: 0.745, hr: 195, era: 4.15, whip: 1.27 },
-                        "121": { bateo: 0.248, ops: 0.738, hr: 200, era: 4.12, whip: 1.30 },
-                        "147": { bateo: 0.252, ops: 0.768, hr: 235, era: 3.74, whip: 1.24 },
-                        "133": { bateo: 0.233, ops: 0.695, hr: 170, era: 4.70, whip: 1.40 },
-                        "143": { bateo: 0.257, ops: 0.750, hr: 210, era: 3.65, whip: 1.20 },
-                        "134": { bateo: 0.236, ops: 0.685, hr: 155, era: 4.10, whip: 1.30 },
-                        "135": { bateo: 0.254, ops: 0.740, hr: 185, era: 3.92, whip: 1.26 },
-                        "137": { bateo: 0.242, ops: 0.710, hr: 165, era: 4.02, whip: 1.29 },
-                        "136": { bateo: 0.232, ops: 0.700, hr: 180, era: 3.48, whip: 1.15 },
-                        "138": { bateo: 0.245, ops: 0.710, hr: 160, era: 4.18, whip: 1.33 },
-                        "139": { bateo: 0.244, ops: 0.720, hr: 160, era: 3.92, whip: 1.24 },
-                        "140": { bateo: 0.252, ops: 0.745, hr: 195, era: 4.28, whip: 1.31 },
-                        "141": { bateo: 0.242, ops: 0.722, hr: 165, era: 3.98, whip: 1.27 },
-                        "120": { bateo: 0.243, ops: 0.695, hr: 145, era: 4.55, whip: 1.38 }
-                    };
-                    return datosMlbInternos[teamId] || { bateo: 0.248, ops: 0.725, hr: 170, era: 4.10, whip: 1.28 };
-                }
+            if (d1.bateo > d2.bateo) puntosE1++; else puntosE2++;
+            if (d1.hr > d2.hr) puntosE1++; else puntosE2++;
+            if (d1.era < d2.era) puntosE1++; else puntosE2++;
+
+            if (horario === "dia") {
+                puntosE1 += (d1.ops > d2.ops) ? 2.0 : 0;
+                puntosE2 += (d2.ops > d1.ops) ? 2.0 : 0;
+                puntosE1 += (d1.whip < d2.whip) ? 1.0 : 0;
+                puntosE2 += (d2.whip < d1.whip) ? 1.0 : 0;
             } else {
-                const lmbKey = valorSeleccionado.split("-")[1];
-                const datosLMB = {
-                    diablos:     { bateo: 0.295, ops: 0.880, hr: 180, era: 4.10, whip: 1.35 },
-                    sultanes:    { bateo: 0.282, ops: 0.820, hr: 145, era: 4.35, whip: 1.40 },
-                    pericos:     { bateo: 0.278, ops: 0.805, hr: 130, era: 4.60, whip: 1.45 },
-                    toros:       { bateo: 0.270, ops: 0.795, hr: 155, era: 4.15, whip: 1.38 },
-                    acereros:    { bateo: 0.275, ops: 0.810, hr: 160, era: 3.95, whip: 1.32 },
-                    leones:      { bateo: 0.268, ops: 0.780, hr: 125, era: 3.70, whip: 1.28 },
-                    olmecas:     { bateo: 0.262, ops: 0.755, hr: 110, era: 3.65, whip: 1.29 },
-                    aguila:      { bateo: 0.272, ops: 0.785, hr: 135, era: 4.45, whip: 1.42 },
-                    guerreros:   { bateo: 0.280, ops: 0.830, hr: 150, era: 4.90, whip: 1.52 },
-                    tigres:      { bateo: 0.255, ops: 0.735, hr: 115, era: 4.75, whip: 1.48 },
-                    saraperos:   { bateo: 0.285, ops: 0.840, hr: 165, era: 4.80, whip: 1.47 },
-                    rieleros:    { bateo: 0.274, ops: 0.790, hr: 140, era: 4.65, whip: 1.46 },
-                    algodoneros: { bateo: 0.271, ops: 0.792, hr: 138, era: 3.88, whip: 1.34 },
-                    durango:     { bateo: 0.269, ops: 0.775, hr: 120, era: 4.50, whip: 1.43 },
-                    queretaro:   { bateo: 0.265, ops: 0.770, hr: 122, era: 4.55, whip: 1.44 },
-                    chihuahua:   { bateo: 0.260, ops: 0.750, hr: 118, era: 4.70, whip: 1.49 },
-                    tecolotes:   { bateo: 0.276, ops: 0.800, hr: 142, era: 4.05, whip: 1.36 },
-                    bravos:      { bateo: 0.267, ops: 0.765, hr: 130, era: 5.10, whip: 1.55 },
-                    piratas:     { bateo: 0.252, ops: 0.720, hr: 105, era: 4.85, whip: 1.50 },
-                    charros:     { bateo: 0.273, ops: 0.798, hr: 148, era: 4.40, whip: 1.41 }
-                };
-                return datosLMB[lmbKey] || { bateo: 0.260, ops: 0.750, hr: 130, era: 4.20, whip: 1.40 };
+                puntosE1 += (d1.ops > d2.ops) ? 1.0 : 0;
+                puntosE2 += (d2.ops > d1.ops) ? 1.0 : 0;
+                puntosE1 += (d1.whip < d2.whip) ? 2.0 : 0;
+                puntosE2 += (d2.whip < d1.whip) ? 2.0 : 0;
+            }
+
+            let ganador = "";
+            let diferenciaCerteza = Math.abs(puntosE1 - puntosE2);
+
+            if (puntosE1 > puntosE2) ganador = d1.name;
+            else if (puntosE2 > puntosE1) ganador = d2.name;
+            else {
+                ganador = (d1.whip < d2.whip) ? d1.name : d2.name;
+                diferenciaCerteza = 0.5;
+            }
+
+            // Estimación matemática del total de carreras
+            const sumaOPS = d1.ops + d2.ops;
+            const sumaWHIP = d1.whip + d2.whip;
+            let carrerasBase = (sumaOPS * 4) + (sumaWHIP * 1.3);
+            carrerasBase = (horario === "dia") ? carrerasBase * 1.09 : carrerasBase * 0.92;
+            
+            let carrerasEstimadas = Math.round(carrerasBase);
+            if (carrerasEstimadas < 4) carrerasEstimadas = 4;
+            if (carrerasEstimadas > 15) carrerasEstimadas = 15;
+
+            return {
+                ganador: ganador,
+                carreras: carrerasEstimadas,
+                certeza: diferenciaCerteza,
+                datosE1: d1,
+                datosE2: d2
+            };
+        }
+
+        // --- AUTOMATIZACIÓN: ESCANER DE LA CARTELERA REAL ---
+        async function escanearJornadaDeHoy() {
+            const divContenido = document.getElementById("scannerContenido");
+            try {
+                // Consultamos el calendario real de la MLB de hoy de forma dinámica
+                const respuesta = await fetch('https://statsapi.mlb.com/api/v1/schedule?sportId=1');
+                const datos = await respuesta.json();
+                
+                if (!datos.dates || datos.dates.length === 0 || !datos.dates[0].games || datos.dates[0].games.length === 0) {
+                    divContenido.innerHTML = "❌ No hay juegos programados oficiales para hoy o la jornada terminó.";
+                    return;
+                }
+
+                const juegosHoy = datos.dates[0].games;
+                let mejorPick = null;
+                let maxCerteza = -1;
+                let horarioPick = "noche";
+
+                // Recorremos y evaluamos cada juego del calendario actual en base a estadísticas
+                juegosHoy.forEach(juego => {
+                    const idHome = juego.teams.home.team.id.toString();
+                    const idAway = juego.teams.away.team.id.toString();
+
+                    // Comprobamos si ambos equipos están en nuestro radar analítico
+                    if (datosMlbInternos[idHome] && datosMlbInternos[idAway]) {
+                        // Determinar si es diurno o nocturno según la hora ISO del juego
+                        // Si es antes de las 16:00 (4 PM) hora local promedio o UTC corregido, lo tomamos como día
+                        const horaJuego = new Date(juego.gameDate).getUTCHours();
+                        const horarioEstablecido = (horaJuego >= 13 && horaJuego <= 21) ? "dia" : "noche";
+
+                        const sim = procesarSimulacion(idAway, idHome, horarioEstablecido);
+
+                        if (sim && sim.certeza > maxCerteza) {
+                            maxCerteza = sim.certeza;
+                            mejorPick = sim;
+                            horarioPick = horarioEstablecido;
+                            mejorPick.homeName = datosMlbInternos[idHome].name;
+                            mejorPick.awayName = datosMlbInternos[idAway].name;
+                        }
+                    }
+                });
+
+                if (mejorPick) {
+                    divContenido.innerHTML = `
+                        <div class="pick-equipos">${mejorPick.awayName} vs ${mejorPick.homeName}</div>
+                        <div class="pick-meta">Condición: ${horarioPick === 'dia' ? '☀️ Diurno (Alta Proyección)' : '🌃 Nocturno (Ajuste de Pitcheo)'}</div>
+                        <div style="margin-top: 8px;">
+                            🎯 Victoria Recomendada: <strong style="color: #4CAF50;">${mejorPick.ganador}</strong><br>
+                            📊 Total de Carreras Estimado: <strong style="color: #FFD700;">${mejorPick.carreras} Carreras</strong>
+                        </div>
+                    `;
+                } else {
+                    divContenido.innerHTML = "⚠️ Juegos del día detectados, pero faltan coeficientes históricos de alguna escuadra para dar un pick óptimo.";
+                }
+
+            } catch (error) {
+                console.error(error);
+                divContenido.innerHTML = "⚠️ No se pudo escanear el servidor de MLB (Verifica tu conexión o CORS).";
             }
         }
 
-        async function compararEquipos() {
-            const select1 = document.getElementById("equipo1");
-            const select2 = document.getElementById("equipo2");
+        // --- EJECUCIÓN MANUAL ---
+        function compararEquiposManual() {
+            const e1 = document.getElementById("equipo1").value;
+            const e2 = document.getElementById("equipo2").value;
             const horario = document.getElementById("horarioJuego").value;
-            
-            const e1 = select1.value; const e2 = select2.value;
-            const nombreE1 = select1.options[select1.selectedIndex].text;
-            const nombreE2 = select2.options[select2.selectedIndex].text;
-            
-            const boton = document.getElementById("btnComparar");
-            boton.innerText = "Calculando Coeficientes...";
-            boton.disabled = true;
 
-            try {
-                const [datosE1, datosE2] = await Promise.all([
-                    obtenerEstadisticas(e1), obtenerEstadisticas(e2)
-                ]);
+            const sim = procesarSimulacion(e1, e2, horario);
+            if(!sim) return;
 
-                document.getElementById("bateoE1").innerText = datosE1.bateo.toFixed(3);
-                document.getElementById("bateoE2").innerText = datosE2.bateo.toFixed(3);
-                document.getElementById("opsE1").innerText = datosE1.ops.toFixed(3);
-                document.getElementById("opsE2").innerText = datosE2.ops.toFixed(3);
-                document.getElementById("hrE1").innerText = datosE1.hr;
-                document.getElementById("hrE2").innerText = datosE2.hr;
-                document.getElementById("eraE1").innerText = datosE1.era.toFixed(2);
-                document.getElementById("eraE2").innerText = datosE2.era.toFixed(2);
-                document.getElementById("whipE1").innerText = datosE1.whip.toFixed(2);
-                document.getElementById("whipE2").innerText = datosE2.whip.toFixed(2);
-                
-                aplicarColores("bateoE1", "bateoE2", datosE1.bateo > datosE2.bateo);
-                aplicarColores("opsE1", "opsE2", datosE1.ops > datosE2.ops);
-                aplicarColores("hrE1", "hrE2", datosE1.hr > datosE2.hr);
-                aplicarColores("eraE1", "eraE2", datosE1.era < datosE2.era);
-                aplicarColores("whipE1", "whipE2", datosE1.whip < datosE2.whip);
+            document.getElementById("bateoE1").innerText = sim.datosE1.bateo.toFixed(3);
+            document.getElementById("bateoE2").innerText = sim.datosE2.bateo.toFixed(3);
+            document.getElementById("opsE1").innerText = sim.datosE1.ops.toFixed(3);
+            document.getElementById("opsE2").innerText = sim.datosE2.ops.toFixed(3);
+            document.getElementById("hrE1").innerText = sim.datosE1.hr;
+            document.getElementById("hrE2").innerText = sim.datosE2.hr;
+            document.getElementById("eraE1").innerText = sim.datosE1.era.toFixed(2);
+            document.getElementById("eraE2").innerText = sim.datosE2.era.toFixed(2);
+            document.getElementById("whipE1").innerText = sim.datosE1.whip.toFixed(2);
+            document.getElementById("whipE2").innerText = sim.datosE2.whip.toFixed(2);
 
-                // --- ALGORITMO INTEGRADO DÍA/NOCHE ---
-                let puntosE1 = 0; let puntosE2 = 0;
+            aplicarColores("bateoE1", "bateoE2", sim.datosE1.bateo > sim.datosE2.bateo);
+            aplicarColores("opsE1", "opsE2", sim.datosE1.ops > sim.datosE2.ops);
+            aplicarColores("hrE1", "hrE2", sim.datosE1.hr > sim.datosE2.hr);
+            aplicarColores("eraE1", "eraE2", sim.datosE1.era < sim.datosE2.era);
+            aplicarColores("whipE1", "whipE2", sim.datosE1.whip < sim.datosE2.whip);
 
-                if (datosE1.bateo > datosE2.bateo) puntosE1++; else puntosE2++;
-                if (datosE1.hr > datosE2.hr) puntosE1++; else puntosE2++;
-                if (datosE1.era < datosE2.era) puntosE1++; else puntosE2++;
-
-                // Asignación de pesos dinámicos sabermétricos
-                if (horario === "dia") {
-                    // El Sol/Calor premia aún más al equipo con mayor poder destructivo (OPS)
-                    puntosE1 += (datosE1.ops > datosE2.ops) ? 2.0 : 0;
-                    puntosE2 += (datosE2.ops > datosE1.ops) ? 2.0 : 0;
-                    puntosE1 += (datosE1.whip < datosE2.whip) ? 1.0 : 0;
-                    puntosE2 += (datosE2.whip < datosE1.whip) ? 1.0 : 0;
-                } else {
-                    // La Noche/Humedad premia fuertemente al equipo con lanzadores que controlan la zona (WHIP)
-                    puntosE1 += (datosE1.ops > datosE2.ops) ? 1.0 : 0;
-                    puntosE2 += (datosE2.ops > datosE1.ops) ? 1.0 : 0;
-                    puntosE1 += (datosE1.whip < datosE2.whip) ? 2.0 : 0;
-                    puntosE2 += (datosE2.whip < datosE1.whip) ? 2.0 : 0;
-                }
-
-                let ganadorPredicho = "";
-                if (puntosE1 > puntosE2) ganadorPredicho = nombreE1;
-                else if (puntosE2 > puntosE1) ganadorPredicho = nombreE2;
-                else ganadorPredicho = (datosE1.whip < datosE2.whip) ? nombreE1 : nombreE2;
-
-                // --- AJUSTE MATEMÁTICO DE CARRERAS SEGÚN DENSIDAD DEL AIRE ---
-                const sumaOPS = datosE1.ops + datosE2.ops;
-                const sumaWHIP = datosE1.whip + datosE2.whip;
-                let carrerasBase = (sumaOPS * 4) + (sumaWHIP * 1.3);
-
-                if (horario === "dia") {
-                    carrerasBase = carrerasBase * 1.09; // Aumento del 9% en promedio por la física de la tarde
-                } else {
-                    carrerasBase = carrerasBase * 0.92; // Reducción del 8% por resistencia del aire nocturno
-                }
-
-                let carrerasEstimadas = Math.round(carrerasBase);
-                if (carrerasEstimadas < 4) carrerasEstimadas = 4;
-                if (carrerasEstimadas > 16) carrerasEstimadas = 15;
-
-                document.getElementById("txtGanador").innerText = "🏆 " + ganadorPredicho;
-                document.getElementById("txtCarreras").innerText = carrerasEstimadas + " Carreras en Total";
-                document.getElementById("panelPrediccion").style.display = "block";
-
-            } catch (error) {
-                alert("Error al procesar el simulador.");
-                console.error(error);
-            } finally {
-                boton.innerText = "Simular Partido";
-                boton.disabled = false;
-            }
+            document.getElementById("txtGanador").innerText = "🏆 " + sim.ganador;
+            document.getElementById("txtCarreras").innerText = sim.carreras + " Carreras en Total";
+            document.getElementById("panelPrediccion").style.display = "block";
         }
 
         function aplicarColores(id1, id2, condicionGanaE1) {
