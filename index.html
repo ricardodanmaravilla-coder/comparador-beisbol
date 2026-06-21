@@ -150,6 +150,93 @@
 
                     if (isNaN(expVisita) || isNaN(expLocal)) return;
 
+    async function analizarPartidos() {
+        try {
+            const hoy = new Date();
+            const year = hoy.getFullYear();
+            const month = String(hoy.getMonth() + 1).padStart(2, '0');
+            const day = String(hoy.getDate()).padStart(2, '0');
+            const fechaAPI = `${year}-${month}-${day}`;
+            const fechaVisual = `${day}/${month}/${year}`;
+            
+            document.getElementById("fecha-header").innerText = `Análisis Moneyball • ${fechaVisual}`;
+
+            // 🐛 BUG CORREGIDO: Agregamos "group=[hitting,pitching]" para obligar a la API a darnos el OPS real
+            const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${fechaAPI}&hydrate=probablePitcher(stats(type=season,season=${year},group=pitching)),team(stats(type=season,season=${year},group=[hitting,pitching]))`;
+            
+            const respuesta = await fetch(url);
+            const datos = await respuesta.json();
+
+            if (!datos.dates || datos.dates.length === 0 || !datos.dates[0].games) {
+                mostrarPantallaVacia();
+                return;
+            }
+
+            const juegos = datos.dates[0].games;
+            listaJuegosGlobal = []; 
+
+            juegos.forEach((juego, index) => {
+                try {
+                    const visita = juego.teams.away;
+                    const local = juego.teams.home;
+                    const nomVisita = visita.team.name;
+                    const nomLocal = local.team.name;
+                    const esNoche = juego.dayNight === 'night';
+                    
+                    const factorParque = factoresEstadio[nomLocal] || 1.00; 
+                    
+                    const wVisita = visita.leagueRecord?.wins || 0;
+                    const lVisita = visita.leagueRecord?.losses || 0;
+                    const wLocal = local.leagueRecord?.wins || 0;
+                    const lLocal = local.leagueRecord?.losses || 0;
+
+                    // 🐛 BUG CORREGIDO: Unificamos los objetos de bateo y pitcheo de la API para que no se pierda nada
+                    let statsVisita = {};
+                    (visita.team?.teamStats || []).forEach(s => Object.assign(statsVisita, s.splits?.[0]?.stat || {}));
+                    
+                    let statsLocal = {};
+                    (local.team?.teamStats || []).forEach(s => Object.assign(statsLocal, s.splits?.[0]?.stat || {}));
+
+                    const juegosVisita = statsVisita.gamesPlayed || (wVisita + lVisita) || 1;
+                    const juegosLocal = statsLocal.gamesPlayed || (wLocal + lLocal) || 1;
+
+                    const runsVisita = statsVisita.runs || (wVisita * 4.5);
+                    const runsLocal = statsLocal.runs || (wLocal * 4.5);
+                    const permitidasTotalesVisita = statsVisita.runsAllowed || (lVisita * 4.5);
+                    const permitidasTotalesLocal = statsLocal.runsAllowed || (lLocal * 4.5);
+
+                    // AHORA SÍ: Toma el OPS real de los equipos. Si por algo es 0 (pretemporada), usa el 0.720
+                    const opsVisita = parseFloat(statsVisita.ops) || 0.720;
+                    const opsLocal = parseFloat(statsLocal.ops) || 0.720;
+
+                    const promAnotadasVisita = (runsVisita / juegosVisita) * (opsVisita / 0.720);
+                    const promAnotadasLocal = (runsLocal / juegosLocal) * (opsLocal / 0.720);
+
+                    const pitcherVisitaData = visita.probablePitcher;
+                    const pitcherLocalData = local.probablePitcher;
+                    
+                    const nomPVisita = pitcherVisitaData ? pitcherVisitaData.fullName : 'TBD';
+                    const nomPLocal = pitcherLocalData ? pitcherLocalData.fullName : 'TBD';
+
+                    let eraPVisita = parseFloat(pitcherVisitaData?.stats?.[0]?.splits?.[0]?.stat?.era) || parseFloat(statsVisita.era) || 4.50;
+                    let eraPLocal = parseFloat(pitcherLocalData?.stats?.[0]?.splits?.[0]?.stat?.era) || parseFloat(statsLocal.era) || 4.50;
+
+                    if (eraPVisita > 8.50) eraPVisita = 8.50;
+                    if (eraPVisita < 1.00) eraPVisita = 2.50;
+                    if (eraPLocal > 8.50) eraPLocal = 8.50;
+                    if (eraPLocal < 1.00) eraPLocal = 2.50;
+
+                    const promPermitidasVisita = permitidasTotalesVisita / juegosVisita;
+                    const promPermitidasLocal = permitidasTotalesLocal / juegosLocal;
+
+                    const defensaVisitaReal = (eraPVisita * 0.6) + (promPermitidasVisita * 0.4);
+                    const defensaLocalReal = (eraPLocal * 0.6) + (promPermitidasLocal * 0.4);
+
+                    let expVisita = ((promAnotadasVisita + defensaLocalReal) / 2) * factorParque;
+                    let expLocal = ((promAnotadasLocal + defensaVisitaReal) / 2) * factorParque;
+
+                    if (isNaN(expVisita) || isNaN(expLocal)) return;
+
                     const pythVisita = Math.pow(expVisita, 1.83);
                     const pythLocal = Math.pow(expLocal, 1.83);
 
@@ -166,7 +253,6 @@
 
                     const diferencia = Math.abs(pctLocal - pctVisita);
 
-                    // Guardamos el objeto en la lista global
                     listaJuegosGlobal.push({
                         id: index,
                         visita: nomVisita, local: nomLocal,
@@ -178,7 +264,7 @@
                         p_visita: nomPVisita, era_visita: eraPVisita.toFixed(2), ops_visita: opsVisita.toFixed(3),
                         p_local: nomPLocal, era_local: eraPLocal.toFixed(2), ops_local: opsLocal.toFixed(3),
                         factor: factorParque,
-                        diferencia: diferencia // Usamos esto para ordenar
+                        diferencia: diferencia 
                     });
                 } catch (e) {
                     console.error("Error analizando un juego", e);
@@ -186,12 +272,8 @@
             });
 
             if (listaJuegosGlobal.length > 0) {
-                // Ordenar del partido más claro (mayor diferencia) al más parejo
                 listaJuegosGlobal.sort((a, b) => b.diferencia - a.diferencia);
-                
-                // Mostrar la lista interactiva
                 renderizarListaJuegos();
-                // Mostrar los detalles del mejor partido por defecto
                 seleccionarJuego(0); 
                 document.getElementById("list-panel").style.display = "block";
             } else {
@@ -202,6 +284,7 @@
             document.getElementById('main-panel').innerHTML = `<h2 style="text-align:center;">❌ Error al analizar API</h2>`;
         }
     }
+                    
 
     // Función para renderizar el menú inferior
     function renderizarListaJuegos() {
