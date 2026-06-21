@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comparador de Béisbol Profesional</title>
+    <title>Comparador de Béisbol Profesional Live</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -110,36 +110,36 @@
 <body>
 
     <div class="app-container">
-        <h1>⚾ Comparador Pro</h1>
+        <h1>⚾ Comparador API Live</h1>
 
         <div class="selector-zona">
             <select id="equipo1">
-                <optgroup label="Grandes Ligas (MLB)">
-                    <option value="yankees">Yankees NY</option>
-                    <option value="dodgers">Dodgers LA</option>
-                    <option value="redsox">Red Sox Boston</option>
-                    <option value="astros">Astros Houston</option>
+                <optgroup label="Grandes Ligas (MLB Live)">
+                    <option value="mlb-147">Yankees NY</option>
+                    <option value="mlb-119">Dodgers LA</option>
+                    <option value="mlb-111">Red Sox Boston</option>
+                    <option value="mlb-117">Astros Houston</option>
                 </optgroup>
                 <optgroup label="Liga Mexicana (LMB)">
-                    <option value="diablos">Diablos Rojos</option>
-                    <option value="sultanes">Sultanes Mty</option>
-                    <option value="pericos">Pericos Puebla</option>
-                    <option value="toros">Toros Tijuana</option>
+                    <option value="lmb-diablos">Diablos Rojos</option>
+                    <option value="lmb-sultanes">Sultanes Mty</option>
+                    <option value="lmb-pericos">Pericos Puebla</option>
+                    <option value="lmb-toros">Toros Tijuana</option>
                 </optgroup>
             </select>
             
             <select id="equipo2">
-                <optgroup label="Grandes Ligas (MLB)">
-                    <option value="dodgers" selected>Dodgers LA</option>
-                    <option value="yankees">Yankees NY</option>
-                    <option value="redsox">Red Sox Boston</option>
-                    <option value="astros">Astros Houston</option>
+                <optgroup label="Grandes Ligas (MLB Live)">
+                    <option value="mlb-119" selected>Dodgers LA</option>
+                    <option value="mlb-147">Yankees NY</option>
+                    <option value="mlb-111">Red Sox Boston</option>
+                    <option value="mlb-117">Astros Houston</option>
                 </optgroup>
                 <optgroup label="Liga Mexicana (LMB)">
-                    <option value="diablos">Diablos Rojos</option>
-                    <option value="sultanes">Sultanes Mty</option>
-                    <option value="pericos">Pericos Puebla</option>
-                    <option value="toros">Toros Tijuana</option>
+                    <option value="lmb-diablos">Diablos Rojos</option>
+                    <option value="lmb-sultanes">Sultanes Mty</option>
+                    <option value="lmb-pericos">Pericos Puebla</option>
+                    <option value="lmb-toros">Toros Tijuana</option>
                 </optgroup>
             </select>
         </div>
@@ -176,63 +176,86 @@
     </div>
 
     <script>
-        async function compararEquipos() {
-            const e1Seleccionado = document.getElementById("equipo1").value;
-            const e2Seleccionado = document.getElementById("equipo2").value;
-            const boton = document.getElementById("btnComparar");
+        // Función para consultar las estadísticas de un equipo
+        async function obtenerEstadisticas(valorSeleccionado) {
+            // Si es un equipo de la MLB, llamamos a la API Oficial de Grandes Ligas
+            if (valorSeleccionado.startsWith("mlb-")) {
+                const teamId = valorSeleccionado.split("-")[1];
+                
+                // Consultamos bateo y pitcheo al mismo tiempo en los servidores de MLB
+                const [resBateo, resPitcheo] = await Promise.all([
+                    fetch(`https://statsapi.mlb.com/api/v1/teams/${teamId}/stats?stats=season&group=hitting`),
+                    fetch(`https://statsapi.mlb.com/api/v1/teams/${teamId}/stats?stats=season&group=pitching`)
+                ]);
 
-            boton.innerText = "Calculando Estadísticas...";
-            boton.disabled = true;
+                const dataBateo = await resBateo.json();
+                const dataPitcheo = await resPitcheo.json();
 
-            try {
-                await new Promise(resolve => setTimeout(resolve, 600));
+                // Extraemos las métricas de la estructura oficial de la MLB
+                const statsBateo = dataBateo.stats[0]?.splits[0]?.stat || {};
+                const statsPitcheo = dataPitcheo.stats[0]?.splits[0]?.stat || {};
 
-                // BASE DE DATOS ACTUALIZADA CON SB Y SO
-                const estadisticas = {
-                    // MLB
-                    yankees:  { bateo: 0.254, hr: 237, sb: 102, era: 3.85, so: 1450 },
-                    dodgers:  { bateo: 0.258, hr: 215, sb: 132, era: 3.60, so: 1390 },
-                    redsox:   { bateo: 0.261, hr: 195, sb: 110, era: 4.20, so: 1280 },
-                    astros:   { bateo: 0.262, hr: 200, sb: 85,  era: 3.75, so: 1410 },
-                    // LMB
+                return {
+                    bateo: parseFloat(statsBateo.avg || 0),
+                    hr: parseInt(statsBateo.homeRuns || 0),
+                    sb: parseInt(statsBateo.stolenBases || 0),
+                    era: parseFloat(statsPitcheo.era || 0),
+                    so: parseInt(statsPitcheo.strikeOuts || 0)
+                };
+            } else {
+                // Base de datos local optimizada para la LMB
+                const lmbKey = valorSeleccionado.split("-")[1];
+                const datosLMB = {
                     diablos:  { bateo: 0.295, hr: 180, sb: 115, era: 4.10, so: 1120 },
                     sultanes: { bateo: 0.282, hr: 145, sb: 95,  era: 4.35, so: 1050 },
                     pericos:  { bateo: 0.278, hr: 130, sb: 88,  era: 4.60, so: 980 },
                     toros:    { bateo: 0.270, hr: 155, sb: 104, era: 4.15, so: 1090 }
                 };
+                return datosLMB[lmbKey];
+            }
+        }
 
-                const datosE1 = estadisticas[e1Seleccionado];
-                const datosE2 = estadisticas[e2Seleccionado];
+        async function compararEquipos() {
+            const e1 = document.getElementById("equipo1").value;
+            const e2 = document.getElementById("equipo2").value;
+            const boton = document.getElementById("btnComparar");
 
-                // 1. Mostrar Bateo
+            boton.innerText = "Llamando Servidores MLB...";
+            boton.disabled = true;
+
+            try {
+                // Traemos los datos asíncronos reales de internet
+                const [datosE1, datosE2] = await Promise.all([
+                    obtenerEstadisticas(e1),
+                    obtenerEstadisticas(e2)
+                ]);
+
+                // Pintamos los datos reales en pantalla
                 document.getElementById("bateoE1").innerText = datosE1.bateo.toFixed(3);
                 document.getElementById("bateoE2").innerText = datosE2.bateo.toFixed(3);
                 
-                // 2. Mostrar HR
                 document.getElementById("hrE1").innerText = datosE1.hr;
                 document.getElementById("hrE2").innerText = datosE2.hr;
 
-                // 3. Mostrar SB (Nueva)
                 document.getElementById("sbE1").innerText = datosE1.sb;
                 document.getElementById("sbE2").innerText = datosE2.sb;
                 
-                // 4. Mostrar ERA
                 document.getElementById("eraE1").innerText = datosE1.era.toFixed(2);
                 document.getElementById("eraE2").innerText = datosE2.era.toFixed(2);
 
-                // 5. Mostrar SO (Nueva)
                 document.getElementById("soE1").innerText = datosE1.so;
                 document.getElementById("soE2").innerText = datosE2.so;
                 
-                // --- LÓGICA DE GANADORES ---
+                // Lógica de colores automáticos
                 aplicarColores("bateoE1", "bateoE2", datosE1.bateo > datosE2.bateo);
                 aplicarColores("hrE1", "hrE2", datosE1.hr > datosE2.hr);
-                aplicarColores("sbE1", "sbE2", datosE1.sb > datosE2.sb); // Mayor es mejor
-                aplicarColores("eraE1", "eraE2", datosE1.era < datosE2.era); // Menor es mejor
-                aplicarColores("soE1", "soE2", datosE1.so > datosE2.so); // Mayor es mejor
+                aplicarColores("sbE1", "sbE2", datosE1.sb > datosE2.sb);
+                aplicarColores("eraE1", "eraE2", datosE1.era < datosE2.era);
+                aplicarColores("soE1", "soE2", datosE1.so > datosE2.so);
 
             } catch (error) {
-                alert("Error al cargar las nuevas métricas.");
+                alert("Error al conectar con los servidores de estadísticas en vivo.");
+                console.error(error);
             } finally {
                 boton.innerText = "Comparar Equipos";
                 boton.disabled = false;
