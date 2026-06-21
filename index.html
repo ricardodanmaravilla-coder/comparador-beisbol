@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -155,4 +156,117 @@ function normalize(name){
     return name.toLowerCase().replace(/[^a-z]/g,'');
 }
 
-function findOdds(game, odds
+function findOdds(game, oddsData){
+    if (!oddsData) return null;
+
+    return oddsData.find(o =>
+        normalize(o.home_team) === normalize(game.home) &&
+        normalize(o.away_team) === normalize(game.away)
+    );
+}
+
+// =========================
+// 🧮 EV
+// =========================
+
+function calcEV(prob, odds){
+    return (prob * odds) - 1;
+}
+
+// =========================
+// 🎯 INIT
+// =========================
+
+async function init(){
+
+    const container = document.getElementById("games");
+
+    const games = await getGames();
+
+    if (games.length === 0) {
+        container.innerHTML = "No hay juegos hoy";
+        return;
+    }
+
+    const oddsData = await getOddsSmart();
+
+    container.innerHTML = "";
+
+    games.forEach(g => {
+
+        const home = g.teams.home.team.name;
+        const away = g.teams.away.team.name;
+
+        // Probabilidad simple (puedes mejorar luego)
+        let probHome = 0.55;
+        let probAway = 0.45;
+
+        const oddsAPI = findOdds({home, away}, oddsData);
+
+        let oH = 1.8;
+        let oA = 2.0;
+        let total = 8.5;
+
+        if (oddsAPI && oddsAPI.bookmakers.length > 0) {
+            const markets = oddsAPI.bookmakers[0].markets;
+
+            const h2h = markets.find(m => m.key === "h2h");
+            const totals = markets.find(m => m.key === "totals");
+
+            if (h2h) {
+                oH = h2h.outcomes.find(o => o.name === home)?.price || oH;
+                oA = h2h.outcomes.find(o => o.name === away)?.price || oA;
+            }
+
+            if (totals) {
+                total = totals.outcomes[0]?.point || total;
+            }
+        }
+
+        const evHome = calcEV(probHome, oH);
+        const evAway = calcEV(probAway, oA);
+
+        let pick = "No bet";
+        let pickClass = "no-value";
+
+        if (evHome > 0) {
+            pick = `🔥 VALUE: ${home}`;
+            pickClass = "value";
+        }
+
+        if (evAway > evHome && evAway > 0) {
+            pick = `🔥 VALUE: ${away}`;
+            pickClass = "value";
+        }
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+            <div class="teams">
+                <div class="team">${away}</div>
+                <div class="team" style="text-align:right">${home}</div>
+            </div>
+
+            <div class="odds">
+                <div>${oA.toFixed(2)}</div>
+                <div>${oH.toFixed(2)}</div>
+            </div>
+
+            <div class="pick ${pickClass}">
+                ${pick} <br>
+                EV H: ${evHome.toFixed(2)} | EV A: ${evAway.toFixed(2)}
+            </div>
+        `;
+
+        container.appendChild(card);
+
+    });
+}
+
+init();
+
+</script>
+
+</body>
+</html>
