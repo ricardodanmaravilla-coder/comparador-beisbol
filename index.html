@@ -1,378 +1,205 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLB Predictor Pro | Interactive</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0b1120; color: #f8fafc; margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
-        .container { max-width: 500px; width: 100%; background: #1e293b; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); padding: 20px; border: 1px solid #334155; box-sizing: border-box; display: flex; flex-direction: column; }
-        h1 { text-align: center; color: #38bdf8; margin-top: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 2px; }
-        .date { text-align: center; color: #94a3b8; font-size: 13px; margin-bottom: 20px; }
-    
-        /* Main Card */
-        .matchup { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 12px 15px; border-radius: 12px; margin-bottom: 15px; font-weight: bold; border-left: 5px solid #38bdf8; }
-        .condition { font-size: 11px; background: #334155; padding: 4px 8px; border-radius: 20px; color: #cbd5e1; }
-        .prediction-card { background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); padding: 18px; border-radius: 12px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4); border: 1px solid #38bdf8; transition: opacity 0.3s ease; }
-        .prediction-card .fav { font-size: 22px; font-weight: 900; color: #ffffff; margin-bottom: 5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
-        .prediction-card .prob { font-size: 15px; color: #e0f2fe; }
-        .section-title { color: #94a3b8; font-size: 12px; margin-top: 20px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #334155; padding-bottom: 5px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .card { background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; }
-        .card-title { font-size: 11px; color: #64748b; text-transform: uppercase; margin-bottom: 6px; font-weight: bold; }
-        .stat-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
-        .stat-val { font-weight: bold; color: #e2e8f0; }
-        .highlight { color: #38bdf8; }
-        .total-box { background: #311042; border: 1px solid #7e22ce; padding: 12px; border-radius: 10px; text-align: center; font-weight: bold; color: #f3e8ff; font-size: 14px; margin-bottom: 10px; }
-        
-        /* Interactive List */
-        .game-list { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 5px; margin-top: 5px; }
-        .game-list::-webkit-scrollbar { width: 6px; }
-        .game-list::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-        .game-item { background: #0f172a; padding: 12px 15px; border-radius: 8px; border: 1px solid #334155; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
-        .game-item:hover { background: #1e293b; border-color: #38bdf8; }
-        .game-item.active { background: #1e3a8a; border-color: #38bdf8; border-left: 5px solid #38bdf8; }
-        .game-item .teams { font-weight: bold; font-size: 13px; color: #e2e8f0; pointer-events: none; }
-        .game-item .prob-badge { font-size: 11px; background: #0284c7; color: white; padding: 3px 6px; border-radius: 4px; font-weight: bold; pointer-events: none; }
-        
-        footer { text-align: center; font-size: 10px; color: #64748b; margin-top: 20px; line-height: 1.5; }
-        .loader { text-align: center; padding: 50px; color: #38bdf8; font-size: 16px; font-weight: bold; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLB GOD MODE 💸</title>
+
+<style>
+body { font-family: Arial; background:#0b1120; color:#fff; margin:0; padding:10px;}
+.container { max-width:520px; margin:auto;}
+h1 { text-align:center; color:#38bdf8;}
+
+.card { background:#1e293b; padding:15px; border-radius:12px; margin-bottom:10px;}
+.game { background:#0f172a; padding:10px; margin-bottom:6px; border-radius:8px; cursor:pointer;}
+.active { border-left:4px solid #38bdf8;}
+
+.badge { padding:3px 6px; border-radius:6px; font-size:11px;}
+.green{background:#16a34a;}
+.red{background:#dc2626;}
+.blue{background:#0284c7;}
+.yellow{background:#eab308; color:#000;}
+</style>
 </head>
+
 <body>
-
 <div class="container">
-    <h1>⚾ MLB Predictor Pro ⚾</h1>
-    <div class="date" id="fecha-header">Cargando...</div>
-    
-    <div id="main-panel">
-        <div class="loader">⚙️ Corriendo algoritmos y analizando métricas...</div>
-    </div>
 
-    <div id="list-panel" style="display: none;">
-        <div class="section-title">📅 Cartelera del Día (Selecciona un juego)</div>
-        <div class="game-list" id="games-container">
-            </div>
-    </div>
-    
-    <footer>
-        Calculando: OPS Equipo | ERA del Abridor (60% peso) | Bullpen (40%) | Altura del Estadio | Localía.
-    </footer>
+<h1>⚾ MLB GOD MODE</h1>
+<div id="dashboard"></div>
+
+<div id="main"></div>
+
+<h3>📅 Juegos</h3>
+<div id="list"></div>
+
 </div>
 
 <script>
-    const factoresEstadio = {
-        "Colorado Rockies": 1.15, "Cincinnati Reds": 1.11, "Boston Red Sox": 1.08,
-        "Chicago Cubs": 1.05, "Texas Rangers": 1.04, "San Diego Padres": 0.95,
-        "Seattle Mariners": 0.94, "Oakland Athletics": 0.94, "San Francisco Giants": 0.96
+const bankroll = 1000;
+const kellyFraction = 0.5; // 🔥 half Kelly (seguro)
+
+let juegos = [];
+
+// ⚡ SIMULADOR DE ODDS (reemplazar con API real)
+function getOdds(){
+    return {
+        home: (1.70 + Math.random()*0.5).toFixed(2),
+        away: (1.90 + Math.random()*0.6).toFixed(2),
+        total: 8 + Math.random()*2
     };
+}
 
-    // Variable global para guardar todos los juegos analizados
-    let listaJuegosGlobal = [];
+// 📡 AQUÍ PUEDES CONECTAR API REAL
+// fetch(`https://api.the-odds-api.com/...`)
 
-    async function analizarPartidos() {
-        try {
-            const hoy = new Date();
-            const year = hoy.getFullYear();
-            const month = String(hoy.getMonth() + 1).padStart(2, '0');
-            const day = String(hoy.getDate()).padStart(2, '0');
-            const fechaAPI = `${year}-${month}-${day}`;
-            const fechaVisual = `${day}/${month}/${year}`;
-            
-            document.getElementById("fecha-header").innerText = `Análisis Moneyball • ${fechaVisual}`;
-            // Agregamos el proxy al principio de la URL
-            const url = `https://corsproxy.io/?https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${fechaAPI}&hydrate=probablePitcher(stats(type=season,season=${year},group=pitching)),team(stats(type=season,season=${year},group=[hitting,pitching]))`;
-            const respuesta = await fetch(url);
-            const datos = await respuesta.json();
+async function init(){
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth()+1).padStart(2,'0');
+    const d = String(today.getDate()).padStart(2,'0');
 
-            if (!datos.dates || datos.dates.length === 0 || !datos.dates[0].games) {
-                mostrarPantallaVacia();
-                return;
-            }
+    const url = `https://corsproxy.io/?https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${y}-${m}-${d}&hydrate=probablePitcher(stats(type=season,season=${y},group=pitching)),team(stats(type=season,season=${y},group=[hitting,pitching]))`;
 
-            const juegos = datos.dates[0].games;
-            listaJuegosGlobal = []; // Limpiar lista
+    const res = await fetch(url);
+    const data = await res.json();
 
-            juegos.forEach((juego, index) => {
-                try {
-                    const visita = juego.teams.away;
-                    const local = juego.teams.home;
-                    const nomVisita = visita.team.name;
-                    const nomLocal = local.team.name;
-                    const esNoche = juego.dayNight === 'night';
-                    
-                    const factorParque = factoresEstadio[nomLocal] || 1.00; 
-                    
-                    const wVisita = visita.leagueRecord?.wins || 0;
-                    const lVisita = visita.leagueRecord?.losses || 0;
-                    const wLocal = local.leagueRecord?.wins || 0;
-                    const lLocal = local.leagueRecord?.losses || 0;
+    const games = data.dates?.[0]?.games || [];
 
-                    const statsVisita = visita.team?.teamStats?.[0]?.splits?.[0]?.stat || {};
-                    const statsLocal = local.team?.teamStats?.[0]?.splits?.[0]?.stat || {};
+    juegos = [];
 
-                    const juegosVisita = statsVisita.gamesPlayed || (wVisita + lVisita) || 1;
-                    const juegosLocal = statsLocal.gamesPlayed || (wLocal + lLocal) || 1;
+    games.forEach((g,i)=>{
+        const away = g.teams.away;
+        const home = g.teams.home;
 
-                    const runsVisita = statsVisita.runs || (wVisita * 4.5);
-                    const runsLocal = statsLocal.runs || (wLocal * 4.5);
-                    const permitidasTotalesVisita = statsVisita.runsAllowed || (lVisita * 4.5);
-                    const permitidasTotalesLocal = statsLocal.runsAllowed || (lLocal * 4.5);
+        let sA={}, sH={};
+        (away.team.teamStats||[]).forEach(s=>Object.assign(sA,s.splits?.[0]?.stat||{}));
+        (home.team.teamStats||[]).forEach(s=>Object.assign(sH,s.splits?.[0]?.stat||{}));
 
-                    const opsVisita = parseFloat(statsVisita.ops) || 0.720;
-                    const opsLocal = parseFloat(statsLocal.ops) || 0.720;
+        const opsA=parseFloat(sA.ops)||0.72;
+        const opsH=parseFloat(sH.ops)||0.72;
 
-                    const promAnotadasVisita = (runsVisita / juegosVisita) * (opsVisita / 0.720);
-                    const promAnotadasLocal = (runsLocal / juegosLocal) * (opsLocal / 0.720);
+        const eraA=parseFloat(away.probablePitcher?.stats?.[0]?.splits?.[0]?.stat?.era)||4.5;
+        const eraH=parseFloat(home.probablePitcher?.stats?.[0]?.splits?.[0]?.stat?.era)||4.5;
 
-                    const pitcherVisitaData = visita.probablePitcher;
-                    const pitcherLocalData = local.probablePitcher;
-                    
-                    const nomPVisita = pitcherVisitaData ? pitcherVisitaData.fullName : 'TBD';
-                    const nomPLocal = pitcherLocalData ? pitcherLocalData.fullName : 'TBD';
+        let expA=(opsA*5+eraH)/2;
+        let expH=(opsH*5+eraA)/2;
 
-                    let eraPVisita = parseFloat(pitcherVisitaData?.stats?.[0]?.splits?.[0]?.stat?.era) || parseFloat(statsVisita.era) || 4.50;
-                    let eraPLocal = parseFloat(pitcherLocalData?.stats?.[0]?.splits?.[0]?.stat?.era) || parseFloat(statsLocal.era) || 4.50;
+        const pA=Math.pow(expA,1.83);
+        const pH=Math.pow(expH,1.83);
 
-                    if (eraPVisita > 8.50) eraPVisita = 8.50;
-                    if (eraPVisita < 1.00) eraPVisita = 2.50;
-                    if (eraPLocal > 8.50) eraPLocal = 8.50;
-                    if (eraPLocal < 1.00) eraPLocal = 2.50;
+        let probA=pA/(pA+pH);
+        let probH=1-probA;
 
-                    const promPermitidasVisita = permitidasTotalesVisita / juegosVisita;
-                    const promPermitidasLocal = permitidasTotalesLocal / juegosLocal;
+        probH+=0.03; probA-=0.03;
 
-                    const defensaVisitaReal = (eraPVisita * 0.6) + (promPermitidasVisita * 0.4);
-                    const defensaLocalReal = (eraPLocal * 0.6) + (promPermitidasLocal * 0.4);
+        // 💰 ODDS
+        const odds = getOdds();
+        const oA=parseFloat(odds.away);
+        const oH=parseFloat(odds.home);
 
-                    let expVisita = ((promAnotadasVisita + defensaLocalReal) / 2) * factorParque;
-                    let expLocal = ((promAnotadasLocal + defensaVisitaReal) / 2) * factorParque;
+        // EV
+        const evA=(probA*oA)-1;
+        const evH=(probH*oH)-1;
 
-                    if (isNaN(expVisita) || isNaN(expLocal)) return;
+        // TOTAL
+        const totalProj = expA+expH;
+        const line = odds.total;
 
-    async function analizarPartidos() {
-        try {
-            const hoy = new Date();
-            const year = hoy.getFullYear();
-            const month = String(hoy.getMonth() + 1).padStart(2, '0');
-            const day = String(hoy.getDate()).padStart(2, '0');
-            const fechaAPI = `${year}-${month}-${day}`;
-            const fechaVisual = `${day}/${month}/${year}`;
-            
-            document.getElementById("fecha-header").innerText = `Análisis Moneyball • ${fechaVisual}`;
+        const probOver = totalProj / (line*1.1);
+        const probUnder = 1 - probOver;
 
-            // 🐛 BUG CORREGIDO: Agregamos "group=[hitting,pitching]" para obligar a la API a darnos el OPS real
-            const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${fechaAPI}&hydrate=probablePitcher(stats(type=season,season=${year},group=pitching)),team(stats(type=season,season=${year},group=[hitting,pitching]))`;
-            
-            const respuesta = await fetch(url);
-            const datos = await respuesta.json();
+        const evOver = (probOver*1.90)-1;
+        const evUnder = (probUnder*1.90)-1;
 
-            if (!datos.dates || datos.dates.length === 0 || !datos.dates[0].games) {
-                mostrarPantallaVacia();
-                return;
-            }
+        const bestEV = Math.max(evA, evH, evOver, evUnder);
 
-            const juegos = datos.dates[0].games;
-            listaJuegosGlobal = []; 
+        // PICK
+        let pick="NO BET";
+        if(bestEV>0.15) pick="💎 BEST BET";
+        else if(bestEV>0.07) pick="🔥 STRONG";
+        else if(bestEV>0.03) pick="✅ VALUE";
 
-            juegos.forEach((juego, index) => {
-                try {
-                    const visita = juego.teams.away;
-                    const local = juego.teams.home;
-                    const nomVisita = visita.team.name;
-                    const nomLocal = local.team.name;
-                    const esNoche = juego.dayNight === 'night';
-                    
-                    const factorParque = factoresEstadio[nomLocal] || 1.00; 
-                    
-                    const wVisita = visita.leagueRecord?.wins || 0;
-                    const lVisita = visita.leagueRecord?.losses || 0;
-                    const wLocal = local.leagueRecord?.wins || 0;
-                    const lLocal = local.leagueRecord?.losses || 0;
+        // KELLY
+        const kelly = bestEV>0 ? (bestEV/(Math.max(oA,oH)-1))*kellyFraction : 0;
+        const stake = bankroll * kelly;
 
-                    // 🐛 BUG CORREGIDO: Unificamos los objetos de bateo y pitcheo de la API para que no se pierda nada
-                    let statsVisita = {};
-                    (visita.team?.teamStats || []).forEach(s => Object.assign(statsVisita, s.splits?.[0]?.stat || {}));
-                    
-                    let statsLocal = {};
-                    (local.team?.teamStats || []).forEach(s => Object.assign(statsLocal, s.splits?.[0]?.stat || {}));
-
-                    const juegosVisita = statsVisita.gamesPlayed || (wVisita + lVisita) || 1;
-                    const juegosLocal = statsLocal.gamesPlayed || (wLocal + lLocal) || 1;
-
-                    const runsVisita = statsVisita.runs || (wVisita * 4.5);
-                    const runsLocal = statsLocal.runs || (wLocal * 4.5);
-                    const permitidasTotalesVisita = statsVisita.runsAllowed || (lVisita * 4.5);
-                    const permitidasTotalesLocal = statsLocal.runsAllowed || (lLocal * 4.5);
-
-                    // AHORA SÍ: Toma el OPS real de los equipos. Si por algo es 0 (pretemporada), usa el 0.720
-                    const opsVisita = parseFloat(statsVisita.ops) || 0.720;
-                    const opsLocal = parseFloat(statsLocal.ops) || 0.720;
-
-                    const promAnotadasVisita = (runsVisita / juegosVisita) * (opsVisita / 0.720);
-                    const promAnotadasLocal = (runsLocal / juegosLocal) * (opsLocal / 0.720);
-
-                    const pitcherVisitaData = visita.probablePitcher;
-                    const pitcherLocalData = local.probablePitcher;
-                    
-                    const nomPVisita = pitcherVisitaData ? pitcherVisitaData.fullName : 'TBD';
-                    const nomPLocal = pitcherLocalData ? pitcherLocalData.fullName : 'TBD';
-
-                    let eraPVisita = parseFloat(pitcherVisitaData?.stats?.[0]?.splits?.[0]?.stat?.era) || parseFloat(statsVisita.era) || 4.50;
-                    let eraPLocal = parseFloat(pitcherLocalData?.stats?.[0]?.splits?.[0]?.stat?.era) || parseFloat(statsLocal.era) || 4.50;
-
-                    if (eraPVisita > 8.50) eraPVisita = 8.50;
-                    if (eraPVisita < 1.00) eraPVisita = 2.50;
-                    if (eraPLocal > 8.50) eraPLocal = 8.50;
-                    if (eraPLocal < 1.00) eraPLocal = 2.50;
-
-                    const promPermitidasVisita = permitidasTotalesVisita / juegosVisita;
-                    const promPermitidasLocal = permitidasTotalesLocal / juegosLocal;
-
-                    const defensaVisitaReal = (eraPVisita * 0.6) + (promPermitidasVisita * 0.4);
-                    const defensaLocalReal = (eraPLocal * 0.6) + (promPermitidasLocal * 0.4);
-
-                    let expVisita = ((promAnotadasVisita + defensaLocalReal) / 2) * factorParque;
-                    let expLocal = ((promAnotadasLocal + defensaVisitaReal) / 2) * factorParque;
-
-                    if (isNaN(expVisita) || isNaN(expLocal)) return;
-
-                    const pythVisita = Math.pow(expVisita, 1.83);
-                    const pythLocal = Math.pow(expLocal, 1.83);
-
-                    let pctVisita = pythVisita / (pythVisita + pythLocal);
-                    let pctLocal = 1 - pctVisita;
-
-                    pctLocal += 0.03; 
-                    pctVisita -= 0.03;
-                    
-                    if (!esNoche) {
-                        expVisita *= 0.98; 
-                        expLocal *= 0.98;
-                    }
-
-                    const diferencia = Math.abs(pctLocal - pctVisita);
-
-                    listaJuegosGlobal.push({
-                        id: index,
-                        visita: nomVisita, local: nomLocal,
-                        horario: esNoche ? "Noche 🌙" : "Día ☀️",
-                        favorito: pctLocal > pctVisita ? nomLocal : nomVisita,
-                        probabilidad: Math.max(pctLocal, pctVisita) * 100,
-                        carreras_visita: expVisita, carreras_local: expLocal,
-                        total: expVisita + expLocal,
-                        p_visita: nomPVisita, era_visita: eraPVisita.toFixed(2), ops_visita: opsVisita.toFixed(3),
-                        p_local: nomPLocal, era_local: eraPLocal.toFixed(2), ops_local: opsLocal.toFixed(3),
-                        factor: factorParque,
-                        diferencia: diferencia 
-                    });
-                } catch (e) {
-                    console.error("Error analizando un juego", e);
-                }
-            });
-
-            if (listaJuegosGlobal.length > 0) {
-                listaJuegosGlobal.sort((a, b) => b.diferencia - a.diferencia);
-                renderizarListaJuegos();
-                seleccionarJuego(0); 
-                document.getElementById("list-panel").style.display = "block";
-            } else {
-                mostrarPantallaVacia();
-            }
-        } catch (error) {
-            console.error(error);
-            document.getElementById('main-panel').innerHTML = `<h2 style="text-align:center;">❌ Error al analizar API</h2>`;
-        }
-    }
-                    
-
-    // Función para renderizar el menú inferior
-    function renderizarListaJuegos() {
-        const container = document.getElementById("games-container");
-        container.innerHTML = ""; // Limpiar lista
-        
-        listaJuegosGlobal.forEach((juego, index) => {
-            const isTop = index === 0;
-            const badgeExtra = isTop ? "🔥 BEST BET" : `${juego.probabilidad.toFixed(1)}%`;
-            
-            const div = document.createElement("div");
-            div.className = "game-item";
-            div.id = `game-item-${index}`;
-            div.onclick = () => seleccionarJuego(index);
-            
-            div.innerHTML = `
-                <div class="teams">${juego.visita} @ ${juego.local}</div>
-                <div class="prob-badge" style="background: ${isTop ? '#ef4444' : '#0284c7'}">${badgeExtra}</div>
-            `;
-            container.appendChild(div);
+        juegos.push({
+            id:i,
+            away:away.team.name,
+            home:home.team.name,
+            probA,probH,
+            oA,oH,
+            evA,evH,
+            totalProj,line,evOver,evUnder,
+            bestEV,pick,stake
         });
-    }
+    });
 
-    // Función que se activa al hacer clic en un partido
-    window.seleccionarJuego = function(index) {
-        // Quitar la clase 'active' de todos los items
-        document.querySelectorAll('.game-item').forEach(el => el.classList.remove('active'));
-        // Poner la clase 'active' al item seleccionado
-        document.getElementById(`game-item-${index}`).classList.add('active');
+    juegos.sort((a,b)=>b.bestEV-a.bestEV);
 
-        const d = listaJuegosGlobal[index];
-        const isBest = index === 0;
-        const etiquetaCard = isBest ? "Pico de Ventaja Estadística (Mejor Apuesta)" : "Análisis del Partido Seleccionado";
+    renderDashboard();
+    renderList();
+    selectGame(0);
+}
 
-        // Renderizar el panel principal con los datos del juego seleccionado
-        document.getElementById('main-panel').innerHTML = `
-            <div class="matchup">
-                <div>${d.visita} <span style="color:#64748b; font-size:12px;">@</span> ${d.local}</div>
-                <div class="condition">${d.horario}</div>
-            </div>
+function renderDashboard(){
+    const best=juegos[0];
 
-            <div class="prediction-card" style="opacity: 0; animation: fadeIn 0.4s forwards;">
-                <div style="font-size: 11px; text-transform: uppercase; color: #bae6fd; letter-spacing: 1px; margin-bottom: 4px;">${etiquetaCard}</div>
-                <div class="fav">🏆 ${d.favorito}</div>
-                <div class="prob">Win Probability: <strong>${d.probabilidad.toFixed(1)}%</strong></div>
-            </div>
+    document.getElementById("dashboard").innerHTML=`
+    <div class="card">
+        <h3>🔥 Mejor Apuesta del Día</h3>
+        <p>${best.away} @ ${best.home}</p>
+        <p>EV: ${(best.bestEV*100).toFixed(1)}%</p>
+        <p>Stake: $${best.stake.toFixed(0)}</p>
+        <p>Pick: ${best.pick}</p>
+    </div>
+    `;
+}
 
-            <div class="total-box">
-                🎯 Total Carreras Proyectadas (O/U): <span style="font-size: 18px; color:#38bdf8;">${d.total.toFixed(1)}</span>
-            </div>
+function renderList(){
+    const list=document.getElementById("list");
+    list.innerHTML="";
 
-            <div class="grid">
-                <div class="card" style="border-top: 3px solid #ef4444;">
-                    <div class="card-title">${d.visita}</div>
-                    <div class="stat-row"><span>Carreras Exp:</span> <span class="stat-val">${d.carreras_visita.toFixed(2)}</span></div>
-                    <div class="stat-row"><span>Poder (OPS):</span> <span class="stat-val" style="color:#38bdf8;">${d.ops_visita}</span></div>
-                    <div style="margin-top:8px; border-top:1px solid #334155; padding-top:6px;">
-                        <div style="font-size:10px; color:#94a3b8;">ABRIDOR</div>
-                        <div class="stat-row" style="font-size:11px;"><span>${d.p_visita}</span></div>
-                        <div class="stat-row"><span>ERA Real:</span> <span class="stat-val">${d.era_visita}</span></div>
-                    </div>
-                </div>
+    juegos.forEach((g,i)=>{
+        list.innerHTML+=`
+        <div class="game" onclick="selectGame(${i})" id="g${i}">
+            ${g.away} @ ${g.home}
+            <span class="badge blue">${(g.bestEV*100).toFixed(1)}%</span>
+        </div>`;
+    });
+}
 
-                <div class="card" style="border-top: 3px solid #10b981;">
-                    <div class="card-title">${d.local}</div>
-                    <div class="stat-row"><span>Carreras Exp:</span> <span class="stat-val">${d.carreras_local.toFixed(2)}</span></div>
-                    <div class="stat-row"><span>Poder (OPS):</span> <span class="stat-val" style="color:#38bdf8;">${d.ops_local}</span></div>
-                    <div style="margin-top:8px; border-top:1px solid #334155; padding-top:6px;">
-                        <div style="font-size:10px; color:#94a3b8;">ABRIDOR</div>
-                        <div class="stat-row" style="font-size:11px;"><span>${d.p_local}</span></div>
-                        <div class="stat-row"><span>ERA Real:</span> <span class="stat-val">${d.era_local}</span></div>
-                    </div>
-                </div>
-            </div>
-            <style>@keyframes fadeIn { to { opacity: 1; } }</style>
-        `;
-    };
+function selectGame(i){
+    document.querySelectorAll('.game').forEach(x=>x.classList.remove('active'));
+    document.getElementById("g"+i).classList.add("active");
 
-    function mostrarPantallaVacia() {
-        document.getElementById('main-panel').innerHTML = `
-            <div style="text-align: center; padding: 30px;">
-                <p>No se encontraron datos o partidos para hoy.</p>
-            </div>
-        `;
-    }
+    const g=juegos[i];
 
-    window.onload = analizarPartidos;
+    document.getElementById("main").innerHTML=`
+    <div class="card">
+        <h2>${g.away} @ ${g.home}</h2>
+
+        <p>💰 ML EV: ${(Math.max(g.evA,g.evH)*100).toFixed(1)}%</p>
+        <p>🎯 Total: ${g.totalProj.toFixed(1)} vs Línea ${g.line.toFixed(1)}</p>
+
+        <p>OVER EV: ${(g.evOver*100).toFixed(1)}%</p>
+        <p>UNDER EV: ${(g.evUnder*100).toFixed(1)}%</p>
+
+        <hr>
+
+        <p>${g.away} → ${(g.probA*100).toFixed(1)}% | ${g.oA}</p>
+        <p>${g.home} → ${(g.probH*100).toFixed(1)}% | ${g.oH}</p>
+
+        <hr>
+
+        <p><b>${g.pick}</b></p>
+        <p>Stake: $${g.stake.toFixed(0)}</p>
+    </div>
+    `;
+}
+
+init();
 </script>
-
 </body>
 </html>
