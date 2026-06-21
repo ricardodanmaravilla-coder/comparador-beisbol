@@ -3,329 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Sabermétrico Profesional + Lanzadores</title>
+    <title>MLB Predictor Bot</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #121212;
-            color: #ffffff;
+            background-color: #0f172a;
+            color: #f8fafc;
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
-        .app-container {
-            max-width: 480px;
+        .container {
+            max-width: 500px;
             width: 100%;
-            background-color: #1e1e1e;
+            background: #1e293b;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
             padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0px 4px 15px rgba(0,0,0,0.5);
-        }
-        h1 {
-            text-align: center;
-            color: #4CAF50;
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-        .seccion-scanner {
-            background: linear-gradient(135deg, #2b2b1a 0%, #1e1e1e 100%);
-            border: 1px solid #FFD700;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        .scanner-titulo {
-            color: #FFD700;
-            font-size: 14px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 0;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-        .pick-info {
-            text-align: center;
-            font-size: 15px;
-            color: #ddd;
-        }
-        .pick-equipos {
-            font-size: 18px;
-            font-weight: bold;
-            color: #fff;
-            margin: 5px 0;
-        }
-        .pick-meta {
-            font-size: 12px;
-            color: #aaa;
-            margin-bottom: 10px;
-        }
-        .label-filtro {
-            font-size: 11px;
-            color: #aaa;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .selector-zona {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .selector-horario {
-            margin-bottom: 20px;
-        }
-        select, .input-pitcher {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            background-color: #2a2a2a;
-            color: white;
-            border: 1px solid #444;
-            font-size: 14px;
+            border: 1px solid #334155;
             box-sizing: border-box;
         }
-        .selector-zona select, .selector-zona .input-pitcher {
-            width: 48%;
-        }
-        .input-pitcher {
-            color: #FFD700;
-            font-weight: bold;
-            text-align: center;
-            border: 1px dashed #555;
-        }
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-bottom: 25px;
-        }
-        button:disabled {
-            background-color: #555;
-            color: #aaa;
-            cursor: not-allowed;
-        }
-        .tabla-comparativa {
-            background-color: #252525;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        .fila {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #383838;
-        }
-        .fila:last-child {
-            border-bottom: none;
-        }
-        .col-equipo {
-            width: 33%;
-            text-align: center;
-            font-size: 16px;
-            font-weight: 500;
-        }
-        .col-metrica {
-            width: 34%;
-            text-align: center;
-            font-size: 12px;
-            color: #aaa;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        .ganador { color: #4CAF50; font-weight: bold; }
-        .perdedor { color: #f44336; }
-        
-        .tarjeta-prediccion {
-            background-color: #252525;
-            border: 2px dashed #4CAF50;
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-            display: none;
-        }
-        .tarjeta-prediccion h2 {
-            color: #4CAF50;
-            font-size: 16px;
-            margin-top: 0;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .destaque-ganador { color: #4CAF50; font-weight: bold; font-size: 18px; display: block margin-top: 4px; }
-        .destaque-carreras { color: #FFD700; font-weight: bold; font-size: 22px; display: block; margin-top: 4px; }
+        h1 { text-align: center; color: #38bdf8; margin-top: 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; }
+        .date { text-align: center; color: #94a3b8; font-size: 13px; margin-bottom: 20px; }
+        .matchup { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 12px 15px; border-radius: 12px; margin-bottom: 15px; font-weight: bold; font-size: 15px; border-left: 5px solid #38bdf8; }
+        .condition { font-size: 11px; background: #334155; padding: 3px 8px; border-radius: 20px; color: #cbd5e1; }
+        .section-title { color: #94a3b8; font-size: 13px; margin-top: 20px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 3px; }
+        .prediction-card { background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%); padding: 18px; border-radius: 12px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(3, 105, 161, 0.3); border: 1px solid #2563eb; }
+        .prediction-card .fav { font-size: 20px; font-weight: 800; color: #ffffff; margin-bottom: 4px; }
+        .prediction-card .prob { font-size: 15px; color: #e0f2fe; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .card { background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; }
+        .card-title { font-size: 11px; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
+        .card-value { font-size: 14px; font-weight: bold; }
+        .total-box { background: #311042; border: 1px solid #581c87; padding: 10px; border-radius: 10px; text-align: center; font-weight: bold; color: #f3e8ff; font-size: 13px; margin-bottom: 20px; }
+        footer { text-align: center; font-size: 10px; color: #64748b; margin-top: 20px; line-height: 1.4; }
+        .loader { text-align: center; padding: 40px; color: #38bdf8; font-size: 16px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <h1>⚾ Scanner Sabermétrico</h1>
+<div class="container" id="app">
+    <div class="loader">⚙️ Analizando estadísticas de la MLB...</div>
+</div>
 
-        <div class="seccion-scanner" id="panelScanner">
-            <h3 class="scanner-titulo">🔥 Top Pick de la Jornada + Pitcher</h3>
-            <div id="scannerContenido" class="pick-info">
-                <span style="color: #aaa; font-size: 13px;">Escaneando abridores de hoy en la MLB...</span>
-            </div>
-        </div>
+<script>
+    async function analizarPartidos() {
+        try {
+            // 1. Obtener la fecha de hoy
+            const hoy = new Date();
+            const year = hoy.getFullYear();
+            const month = String(hoy.getMonth() + 1).padStart(2, '0');
+            const day = String(hoy.getDate()).padStart(2, '0');
+            const fechaAPI = `${year}-${month}-${day}`;
+            const fechaVisual = `${day}/${month}/${year}`;
 
-        <span class="label-filtro">Selección de Equipos</span>
-        <div class="selector-zona">
-            <select id="equipo1" onchange="actualizarPitchersManual()"><optgroup id="mlb-group1" label="Cargando..."></optgroup></select>
-            <select id="equipo2" onchange="actualizarPitchersManual()"><optgroup id="mlb-group2" label="Cargando..."></optgroup></select>
-        </div>
+            // 2. Conectar a la API de la MLB
+            const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${fechaAPI}&hydrate=probablePitcher,team(stats(type=season,season=${year}))`;
+            const respuesta = await fetch(url);
+            const datos = await respuesta.json();
 
-        <span class="label-filtro">Lanzador Abridor [Brazo]</span>
-        <div class="selector-zona">
-            <input type="text" id="txtPitcherE1" class="input-pitcher" value="Cargando..." readonly>
-            <input type="text" id="txtPitcherE2" class="input-pitcher" value="Cargando..." readonly>
-        </div>
+            // 3. Verificar si hay juegos
+            if (!datos.dates || datos.dates.length === 0 || !datos.dates[0].games) {
+                mostrarPantallaVacia(fechaVisual);
+                return;
+            }
 
-        <div class="selector-horario">
-            <span class="label-filtro">Horario y Medio Ambiente</span>
-            <select id="horarioJuego">
-                <option value="noche">🌃 Juego Nocturno (Reflectores / Ventaja Pitcheo)</option>
-                <option value="dia">☀️ Juego Diurno (Sol Directo / Ventaja Bateo)</option>
-            </select>
-        </div>
+            const juegos = datos.dates[0].games;
+            let mayorProbabilidad = -1;
+            let mejorJuego = null;
 
-        <button id="btnComparar" onclick="compararEquiposManual()">Simular Partido Selección</button>
+            // 4. Analizar juego por juego
+            juegos.forEach(juego => {
+                try {
+                    const visita = juego.teams.away;
+                    const local = juego.teams.home;
+                    const nomVisita = visita.team.name;
+                    const nomLocal = local.team.name;
+                    const esNoche = juego.dayNight === 'night';
 
-        <div class="tabla-comparativa">
-            <div class="fila">
-                <div id="bateoE1" class="col-equipo">-</div>
-                <div class="col-metrica">Bateo (AVG)</div>
-                <div id="bateoE2" class="col-equipo">-</div>
-            </div>
-            <div class="fila">
-                <div id="opsE1" class="col-equipo">-</div>
-                <div class="col-metrica">Poder (OPS)</div>
-                <div id="opsE2" class="col-equipo">-</div>
-            </div>
-            <div class="fila">
-                <div id="hrE1" class="col-equipo">-</div>
-                <div class="col-metrica">Home Runs</div>
-                <div id="hrE2" class="col-equipo">-</div>
-            </div>
-            <div class="fila">
-                <div id="eraE1" class="col-equipo">-</div>
-                <div class="col-metrica">Pitcheo (ERA)</div>
-                <div id="eraE2" class="col-equipo">-</div>
-            </div>
-            <div class="fila">
-                <div id="whipE1" class="col-equipo">-</div>
-                <div class="col-metrica">Control (WHIP)</div>
-                <div id="whipE2" class="col-equipo">-</div>
-            </div>
-        </div>
+                    // Extraer Estadísticas
+                    const statsVisita = visita.team.teamStats[0].splits[0].stat;
+                    const statsLocal = local.team.teamStats[0].splits[0].stat;
 
-        <div class="tarjeta-prediccion" id="panelPrediccion">
-            <h2>🔮 Pronóstico Detallado</h2>
-            <div style="font-size: 15px; margin: 10px 0; color: #ddd;">
-                Ganador más probable: <span id="txtGanador" class="destaque-ganador">-</span>
-            </div>
-            <div style="font-size: 15px; margin: 10px 0; color: #ddd;">
-                Total de carreras estimado: <span id="txtCarreras" class="destaque-carreras">-</span>
-            </div>
-        </div>
-    </div>
+                    const runsVisita = statsVisita.runs || 0;
+                    const juegosVisita = statsVisita.gamesPlayed || 1;
+                    const permitidasVisita = statsVisita.runsAllowed || 0;
 
-    <script>
-        const datosMlbInternos = {
-            "109": { name: "Arizona Diamondbacks", brazo: "R", bateo: 0.250, ops: 0.730, hr: 165, era: 4.48, whip: 1.32 },
-            "144": { name: "Atlanta Braves", brazo: "R", bateo: 0.258, ops: 0.760, hr: 220, era: 3.75, whip: 1.25 },
-            "110": { name: "Baltimore Orioles", brazo: "R", bateo: 0.255, ops: 0.755, hr: 230, era: 3.90, whip: 1.24 },
-            "111": { name: "Boston Red Sox", brazo: "L", bateo: 0.256, ops: 0.748, hr: 190, era: 4.10, whip: 1.28 },
-            "112": { name: "Chicago Cubs", brazo: "R", bateo: 0.242, ops: 0.725, hr: 170, era: 3.80, whip: 1.26 },
-            "145": { name: "Chicago White Sox", brazo: "R", bateo: 0.220, ops: 0.630, hr: 130, era: 4.90, whip: 1.45 },
-            "113": { name: "Cincinnati Reds", brazo: "R", bateo: 0.244, ops: 0.715, hr: 185, era: 4.54, whip: 1.35 },
-            "114": { name: "Cleveland Guardians", brazo: "R", bateo: 0.245, ops: 0.710, hr: 160, era: 3.70, whip: 1.22 },
-            "115": { name: "Colorado Rockies", brazo: "R", bateo: 0.254, ops: 0.735, hr: 160, era: 5.40, whip: 1.51 },
-            "116": { name: "Detroit Tigers", brazo: "R", bateo: 0.240, ops: 0.705, hr: 165, era: 3.95, whip: 1.26 },
-            "117": { name: "Houston Astros", brazo: "R", bateo: 0.262, ops: 0.765, hr: 215, era: 3.85, whip: 1.25 },
-            "118": { name: "Kansas City Royals", brazo: "L", bateo: 0.248, ops: 0.720, hr: 160, era: 3.90, whip: 1.26 },
-            "108": { name: "Los Angeles Angels", brazo: "R", bateo: 0.245, ops: 0.718, hr: 195, era: 4.45, whip: 1.34 },
-            "119": { name: "Los Angeles Dodgers", brazo: "L", bateo: 0.265, ops: 0.795, hr: 240, era: 3.78, whip: 1.22 },
-            "146": { name: "Miami Marlins", brazo: "R", bateo: 0.241, ops: 0.690, hr: 140, era: 4.22, whip: 1.31 },
-            "158": { name: "Milwaukee Brewers", brazo: "R", bateo: 0.244, ops: 0.730, hr: 175, era: 3.72, whip: 1.24 },
-            "142": { name: "Minnesota Twins", brazo: "R", bateo: 0.246, ops: 0.745, hr: 195, era: 4.15, whip: 1.27 },
-            "121": { name: "New York Mets", brazo: "L", bateo: 0.248, ops: 0.738, hr: 200, era: 4.12, whip: 1.30 },
-            "147": { name: "New York Yankees", brazo: "R", bateo: 0.252, ops: 0.768, hr: 235, era: 3.74, whip: 1.24 },
-            "133": { name: "Oakland Athletics", brazo: "R", bateo: 0.233, ops: 0.695, hr: 170, era: 4.70, whip: 1.40 },
-            "143": { name: "Philadelphia Phillies", brazo: "L", bateo: 0.257, ops: 0.750, hr: 210, era: 3.65, whip: 1.20 },
-            "134": { name: "Pittsburgh Pirates", brazo: "R", bateo: 0.236, ops: 0.685, hr: 155, era: 4.10, whip: 1.30 },
-            "135": { name: "San Diego Padres", brazo: "R", bateo: 0.254, ops: 0.740, hr: 185, era: 3.92, whip: 1.26 },
-            "137": { name: "San Francisco Giants", brazo: "R", bateo: 0.242, ops: 0.710, hr: 165, era: 4.02, whip: 1.29 },
-            "136": { name: "Seattle Mariners", brazo: "R", bateo: 0.232, ops: 0.700, hr: 180, era: 3.48, whip: 1.15 },
-            "138": { name: "St. Louis Cardinals", brazo: "R", bateo: 0.245, ops: 0.710, hr: 160, era: 4.18, whip: 1.33 },
-            "139": { name: "Tampa Bay Rays", brazo: "R", bateo: 0.244, ops: 0.720, hr: 160, era: 3.92, whip: 1.24 },
-            "140": { name: "Texas Rangers", brazo: "L", bateo: 0.252, ops: 0.745, hr: 195, era: 4.28, whip: 1.31 },
-            "141": { name: "Toronto Blue Jays", brazo: "R", bateo: 0.242, ops: 0.722, hr: 165, era: 3.98, whip: 1.27 },
-            "120": { name: "Washington Nationals", brazo: "R", bateo: 0.243, ops: 0.695, hr: 145, era: 4.55, whip: 1.38 }
-        };
+                    const runsLocal = statsLocal.runs || 0;
+                    const juegosLocal = statsLocal.gamesPlayed || 1;
+                    const permitidasLocal = statsLocal.runsAllowed || 0;
 
-        const elitePitchers = ["Gerrit Cole", "Tarik Skubal", "Chris Sale", "Zack Wheeler", "Corbin Burnes", "Logan Gilbert", "Dylan Cease", "Luis Castillo"];
-        let mapaJuegosDeHoy = {};
+                    const promAnotadasVisita = runsVisita / juegosVisita;
+                    const promPermitidasVisita = permitidasVisita / juegosVisita;
+                    const promAnotadasLocal = runsLocal / juegosLocal;
+                    const promPermitidasLocal = permitidasLocal / juegosLocal;
 
-        window.onload = async () => {
-            const g1 = document.getElementById('mlb-group1');
-            const g2 = document.getElementById('mlb-group2');
-            Object.keys(datosMlbInternos).forEach(id => {
-                g1.innerHTML += `<option value="${id}">${datosMlbInternos[id].name}</option>`;
-                g2.innerHTML += `<option value="${id}">${datosMlbInternos[id].name}</option>`;
+                    // Lanzadores Probables
+                    const pitcherVisita = visita.probablePitcher ? visita.probablePitcher.fullName : 'TBD';
+                    const brazoVisita = visita.probablePitcher && visita.probablePitcher.pitchHand ? visita.probablePitcher.pitchHand.code : '-';
+                    const pitcherLocal = local.probablePitcher ? local.probablePitcher.fullName : 'TBD';
+                    const brazoLocal = local.probablePitcher && local.probablePitcher.pitchHand ? local.probablePitcher.pitchHand.code : '-';
+
+                    // Matemáticas: Carreras Esperadas
+                    const expVisita = (promAnotadasVisita + promPermitidasLocal) / 2;
+                    const expLocal = (promAnotadasLocal + promPermitidasVisita) / 2;
+
+                    // Matemáticas: Teorema Pitagórico (^1.83)
+                    const pythVisita = Math.pow(expVisita, 1.83);
+                    const pythLocal = Math.pow(expLocal, 1.83);
+
+                    let pctVisita = 0.5;
+                    if ((pythVisita + pythLocal) > 0) {
+                        pctVisita = pythVisita / (pythVisita + pythLocal);
+                    }
+                    let pctLocal = 1 - pctVisita;
+
+                    // Ajuste de Localía (+2%)
+                    pctLocal += 0.02;
+                    pctVisita -= 0.02;
+
+                    const diferencia = Math.abs(pctLocal - pctVisita);
+
+                    // Elegir el mejor juego
+                    if (diferencia > mayorProbabilidad) {
+                        mayorProbabilidad = diferencia;
+                        mejorJuego = {
+                            fecha: fechaVisual,
+                            visita: nomVisita,
+                            local: nomLocal,
+                            horario: esNoche ? "Noche 🌙" : "Día ☀️",
+                            favorito: pctLocal > pctVisita ? nomLocal : nomVisita,
+                            probabilidad: Math.max(pctLocal, pctVisita) * 100,
+                            carreras_visita: expVisita,
+                            carreras_local: expLocal,
+                            total: expVisita + expLocal,
+                            p_visita: pitcherVisita, b_visita: brazoVisita,
+                            p_local: pitcherLocal, b_local: brazoLocal
+                        };
+                    }
+                } catch (e) {
+                    console.error("Faltan datos en un partido, omitiendo...", e);
+                }
             });
-            await escanearJornadaDeHoy();
-            actualizarPitchersManual();
-        };
 
-        async function escanearJornadaDeHoy() {
-            try {
-                const res = await fetch('https://statsapi.mlb.com/api/v1/schedule?sportId=1');
-                const data = await res.json();
-                const juego = data.dates[0].games[0];
-                mapaJuegosDeHoy[juego.teams.away.team.id] = juego.teams.away.probablePitcher?.fullName + " [" + (juego.teams.away.probablePitcher?.pitchHand.code || "?") + "]";
-                mapaJuegosDeHoy[juego.teams.home.team.id] = juego.teams.home.probablePitcher?.fullName + " [" + (juego.teams.home.probablePitcher?.pitchHand.code || "?") + "]";
-                document.getElementById("scannerContenido").innerHTML = `<b>${juego.teams.away.team.name} vs ${juego.teams.home.team.name}</b>`;
-            } catch(e) { document.getElementById("scannerContenido").innerText = "Scanner en espera..."; }
+            // 5. Dibujar en la pantalla
+            if (mejorJuego) {
+                mostrarMejorJuego(mejorJuego);
+            } else {
+                mostrarPantallaVacia(fechaVisual);
+            }
+
+        } catch (error) {
+            console.error("Error global:", error);
+            document.getElementById('app').innerHTML = `<h2>❌ Error al conectar con MLB</h2><p>Intenta recargar la página más tarde.</p>`;
         }
+    }
 
-        function actualizarPitchersManual() {
-            const e1 = document.getElementById("equipo1").value;
-            const e2 = document.getElementById("equipo2").value;
-            document.getElementById("txtPitcherE1").value = mapaJuegosDeHoy[e1] || "Abridor [?]";
-            document.getElementById("txtPitcherE2").value = mapaJuegosDeHoy[e2] || "Abridor [?]";
-        }
-
-        function compararEquiposManual() {
-            const e1 = datosMlbInternos[document.getElementById("equipo1").value];
-            const e2 = datosMlbInternos[document.getElementById("equipo2").value];
-            const p1Val = document.getElementById("txtPitcherE1").value;
+    function mostrarMejorJuego(d) {
+        document.getElementById('app').innerHTML = `
+            <h1>⚾ MLB Predictor ⚾</h1>
+            <div class="date">Selección en vivo del día • ${d.fecha}</div>
             
-            // Lógica brazo: Si el brazo detectado en el input es L, ajustamos probabilidad
-            let factorBrazo = p1Val.includes("[L]") ? 1.05 : 1.0;
+            <div class="matchup">
+                <div>${d.visita} <span style="color:#64748b; font-size:12px;">@</span> ${d.local}</div>
+                <div class="condition">${d.horario}</div>
+            </div>
 
-            document.getElementById("panelPrediccion").style.display = "block";
-            document.getElementById("txtGanador").innerText = "🏆 Ganador: " + (e1.bateo > e2.bateo ? e1.name : e2.name);
-            document.getElementById("txtCarreras").innerText = "Carreras estimadas: " + (7.5 * factorBrazo).toFixed(1);
+            <div class="prediction-card">
+                <div style="font-size: 11px; text-transform: uppercase; color: #bae6fd; letter-spacing: 1px; margin-bottom: 4px;">Mayor ventaja estadística</div>
+                <div class="fav">🏆 ${d.favorito}</div>
+                <div class="prob">Probabilidad de ganar: <strong>${d.probabilidad.toFixed(1)}%</strong></div>
+            </div>
+
+            <div class="section-title">🔥 Carreras Esperadas (Proyección)</div>
+            <div class="grid">
+                <div class="card" style="border-top: 3px solid #ef4444;">
+                    <div class="card-title">${d.visita}</div>
+                    <div class="card-value">${d.carreras_visita.toFixed(1)} Runs</div>
+                </div>
+                <div class="card" style="border-top: 3px solid #10b981;">
+                    <div class="card-title">${d.local}</div>
+                    <div class="card-value">${d.carreras_local.toFixed(1)} Runs</div>
+                </div>
+            </div>
             
-            // Actualizar tabla
-            document.getElementById("bateoE1").innerText = e1.bateo; document.getElementById("bateoE2").innerText = e2.bateo;
-            document.getElementById("opsE1").innerText = e1.ops; document.getElementById("opsE2").innerText = e2.ops;
-            document.getElementById("hrE1").innerText = e1.hr; document.getElementById("hrE2").innerText = e2.hr;
-            document.getElementById("eraE1").innerText = e1.era; document.getElementById("eraE2").innerText = e2.era;
-            document.getElementById("whipE1").innerText = e1.whip; document.getElementById("whipE2").innerText = e2.whip;
-        }
-    </script>
+            <div class="total-box">
+                📊 Total carreras proyectadas (Over/Under): ${d.total.toFixed(1)}
+            </div>
+
+            <div class="section-title">🧢 Lanzadores Abridores</div>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">Visita</div>
+                    <div class="card-value" style="font-size:13px;">${d.p_visita}</div>
+                    <div style="font-size:10px; color:#64748b; margin-top:2px;">Brazo: ${d.b_visita}</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Local</div>
+                    <div class="card-value" style="font-size:13px;">${d.p_local}</div>
+                    <div style="font-size:10px; color:#64748b; margin-top:2px;">Brazo: ${d.b_local}</div>
+                </div>
+            </div>
+
+            <footer>
+                Se ejecuta en vivo desde tu navegador.<br>
+                Basado en el Teorema Pitagórico de Sabermetría. ¡Usa con responsabilidad!
+            </footer>
+        `;
+    }
+
+    function mostrarPantallaVacia(fecha) {
+        document.getElementById('app').innerHTML = `
+            <div style="text-align: center; padding: 30px;">
+                <h1>⚾ MLB Predictor ⚾</h1>
+                <p style="font-size: 14px; color: #94a3b8;">Fecha: ${fecha}</p>
+                <p>Hoy no hay partidos programados o la API de la MLB aún no actualiza las estadísticas.</p>
+            </div>
+        `;
+    }
+
+    // Arrancar el análisis en cuanto carga la página
+    window.onload = analizarPartidos;
+</script>
+
 </body>
 </html>
+        
