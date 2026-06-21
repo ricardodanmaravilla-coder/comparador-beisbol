@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparador de Béisbol Profesional</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .app-container {
+            max-width: 450px;
+            width: 100%;
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.5);
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+            font-size: 24px;
+            margin-bottom: 25px;
+        }
+        .selector-zona {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        select {
+            width: 48%;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: #2a2a2a;
+            color: white;
+            border: 1px solid #444;
+            font-size: 14px;
+        }
+        optgroup {
+            background-color: #1e1e1e;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        option {
+            color: white;
+            background-color: #2a2a2a;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 25px;
+        }
+        button:disabled {
+            background-color: #555;
+            color: #aaa;
+            cursor: not-allowed;
+        }
+        .tabla-comparativa {
+            background-color: #252525;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        .fila {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #383838;
+        }
+        .fila:last-child {
+            border-bottom: none;
+        }
+        .col-equipo {
+            width: 30%;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 500;
+        }
+        .col-metrica {
+            width: 40%;
+            text-align: center;
+            font-size: 13px;
+            color: #aaa;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .ganador {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .perdedor {
+            color: #f44336;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <h1>⚾ Comparador Pro</h1>
+
+        <div class="selector-zona">
+            <select id="equipo1">
+                <optgroup label="Grandes Ligas (MLB)">
+                    <option value="yankees">Yankees NY</option>
+                    <option value="dodgers">Dodgers LA</option>
+                    <option value="redsox">Red Sox Boston</option>
+                    <option value="astros">Astros Houston</option>
+                </optgroup>
+                <optgroup label="Liga Mexicana (LMB)">
+                    <option value="diablos">Diablos Rojos</option>
+                    <option value="sultanes">Sultanes Mty</option>
+                    <option value="pericos">Pericos Puebla</option>
+                    <option value="toros">Toros Tijuana</option>
+                </optgroup>
+            </select>
+            
+            <select id="equipo2">
+                <optgroup label="Grandes Ligas (MLB)">
+                    <option value="dodgers" selected>Dodgers LA</option>
+                    <option value="yankees">Yankees NY</option>
+                    <option value="redsox">Red Sox Boston</option>
+                    <option value="astros">Astros Houston</option>
+                </optgroup>
+                <optgroup label="Liga Mexicana (LMB)">
+                    <option value="diablos">Diablos Rojos</option>
+                    <option value="sultanes">Sultanes Mty</option>
+                    <option value="pericos">Pericos Puebla</option>
+                    <option value="toros">Toros Tijuana</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <button id="btnComparar" onclick="compararEquipos()">Comparar Equipos</button>
+
+        <div class="tabla-comparativa">
+            <div class="fila">
+                <div id="bateoE1" class="col-equipo">-</div>
+                <div class="col-metrica">Bateo (AVG)</div>
+                <div id="bateoE2" class="col-equipo">-</div>
+            </div>
+            <div class="fila">
+                <div id="hrE1" class="col-equipo">-</div>
+                <div class="col-metrica">Home Runs (HR)</div>
+                <div id="hrE2" class="col-equipo">-</div>
+            </div>
+            <div class="fila">
+                <div id="sbE1" class="col-equipo">-</div>
+                <div class="col-metrica">Bases Robadas (SB)</div>
+                <div id="sbE2" class="col-equipo">-</div>
+            </div>
+            <div class="fila">
+                <div id="eraE1" class="col-equipo">-</div>
+                <div class="col-metrica">Pitcheo (ERA)</div>
+                <div id="eraE2" class="col-equipo">-</div>
+            </div>
+            <div class="fila">
+                <div id="soE1" class="col-equipo">-</div>
+                <div class="col-metrica">Ponches (SO)</div>
+                <div id="soE2" class="col-equipo">-</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function compararEquipos() {
+            const e1Seleccionado = document.getElementById("equipo1").value;
+            const e2Seleccionado = document.getElementById("equipo2").value;
+            const boton = document.getElementById("btnComparar");
+
+            boton.innerText = "Calculando Estadísticas...";
+            boton.disabled = true;
+
+            try {
+                await new Promise(resolve => setTimeout(resolve, 600));
+
+                // BASE DE DATOS ACTUALIZADA CON SB Y SO
+                const estadisticas = {
+                    // MLB
+                    yankees:  { bateo: 0.254, hr: 237, sb: 102, era: 3.85, so: 1450 },
+                    dodgers:  { bateo: 0.258, hr: 215, sb: 132, era: 3.60, so: 1390 },
+                    redsox:   { bateo: 0.261, hr: 195, sb: 110, era: 4.20, so: 1280 },
+                    astros:   { bateo: 0.262, hr: 200, sb: 85,  era: 3.75, so: 1410 },
+                    // LMB
+                    diablos:  { bateo: 0.295, hr: 180, sb: 115, era: 4.10, so: 1120 },
+                    sultanes: { bateo: 0.282, hr: 145, sb: 95,  era: 4.35, so: 1050 },
+                    pericos:  { bateo: 0.278, hr: 130, sb: 88,  era: 4.60, so: 980 },
+                    toros:    { bateo: 0.270, hr: 155, sb: 104, era: 4.15, so: 1090 }
+                };
+
+                const datosE1 = estadisticas[e1Seleccionado];
+                const datosE2 = estadisticas[e2Seleccionado];
+
+                // 1. Mostrar Bateo
+                document.getElementById("bateoE1").innerText = datosE1.bateo.toFixed(3);
+                document.getElementById("bateoE2").innerText = datosE2.bateo.toFixed(3);
+                
+                // 2. Mostrar HR
+                document.getElementById("hrE1").innerText = datosE1.hr;
+                document.getElementById("hrE2").innerText = datosE2.hr;
+
+                // 3. Mostrar SB (Nueva)
+                document.getElementById("sbE1").innerText = datosE1.sb;
+                document.getElementById("sbE2").innerText = datosE2.sb;
+                
+                // 4. Mostrar ERA
+                document.getElementById("eraE1").innerText = datosE1.era.toFixed(2);
+                document.getElementById("eraE2").innerText = datosE2.era.toFixed(2);
+
+                // 5. Mostrar SO (Nueva)
+                document.getElementById("soE1").innerText = datosE1.so;
+                document.getElementById("soE2").innerText = datosE2.so;
+                
+                // --- LÓGICA DE GANADORES ---
+                aplicarColores("bateoE1", "bateoE2", datosE1.bateo > datosE2.bateo);
+                aplicarColores("hrE1", "hrE2", datosE1.hr > datosE2.hr);
+                aplicarColores("sbE1", "sbE2", datosE1.sb > datosE2.sb); // Mayor es mejor
+                aplicarColores("eraE1", "eraE2", datosE1.era < datosE2.era); // Menor es mejor
+                aplicarColores("soE1", "soE2", datosE1.so > datosE2.so); // Mayor es mejor
+
+            } catch (error) {
+                alert("Error al cargar las nuevas métricas.");
+            } finally {
+                boton.innerText = "Comparar Equipos";
+                boton.disabled = false;
+            }
+        }
+
+        function aplicarColores(id1, id2, condicionGanaE1) {
+            const el1 = document.getElementById(id1);
+            const el2 = document.getElementById(id2);
+
+            if (condicionGanaE1) {
+                el1.className = "col-equipo ganador";
+                el2.className = "col-equipo perdedor";
+            } else {
+                el1.className = "col-equipo perdedor";
+                el2.className = "col-equipo ganador";
+            }
+        }
+    </script>
+</body>
+</html>
