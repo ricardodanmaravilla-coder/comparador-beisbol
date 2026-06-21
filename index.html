@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comparador de Béisbol Profesional Completo</title>
+    <title>Comparador de Béisbol con Predicción Inteligente</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -73,6 +73,7 @@
             background-color: #252525;
             border-radius: 10px;
             padding: 15px;
+            margin-bottom: 20px;
         }
         .fila {
             display: flex;
@@ -104,6 +105,42 @@
         }
         .perdedor {
             color: #f44336;
+        }
+        /* Nueva sección de pronósticos */
+        .tarjeta-prediccion {
+            background-color: #252525;
+            border: 2px dashed #4CAF50;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            display: none; /* Se oculta hasta que se haga la comparación */
+        }
+        .tarjeta-prediccion h2 {
+            color: #4CAF50;
+            font-size: 16px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .resultado-prediccion {
+            font-size: 15px;
+            margin: 10px 0;
+            color: #ddd;
+        }
+        .destaque-ganador {
+            color: #4CAF50;
+            font-weight: bold;
+            font-size: 18px;
+            display: block;
+            margin-top: 4px;
+        }
+        .destaque-carreras {
+            color: #FFD700;
+            font-weight: bold;
+            font-size: 22px;
+            display: block;
+            margin-top: 4px;
         }
     </style>
 </head>
@@ -199,15 +236,26 @@
                 <div id="soE2" class="col-equipo">-</div>
             </div>
         </div>
+
+        <!-- AQUÍ SE MOSTRARÁ EL PRONÓSTICO DE LA IA -->
+        <div class="tarjeta-prediccion" id="panelPrediccion">
+            <h2>🔮 Pronóstico Sabermétrico</h2>
+            <div class="resultado-prediccion">
+                Ganador más probable: 
+                <span id="txtGanador" class="destaque-ganador">-</span>
+            </div>
+            <div class="resultado-prediccion" style="margin-top: 15px;">
+                Total de carreras en el juego: 
+                <span id="txtCarreras" class="destaque-carreras">-</span>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Al cargar la página, se descargan automáticamente los 30 equipos de la MLB
         window.onload = async function() {
             try {
                 const res = await fetch('https://statsapi.mlb.com/api/v1/teams?sportId=1');
                 const data = await res.json();
-                // Ordenar alfabéticamente
                 const equiposMLB = data.teams.sort((a, b) => a.name.localeCompare(b.name));
                 
                 const grupo1 = document.getElementById('mlb-group1');
@@ -222,11 +270,11 @@
                     
                     opt1.value = `mlb-${equipo.id}`;
                     opt1.innerText = equipo.name;
-                    if(equipo.id === 147) opt1.selected = true; // Yankees seleccionado por defecto
+                    if(equipo.id === 147) opt1.selected = true;
                     
                     opt2.value = `mlb-${equipo.id}`;
                     opt2.innerText = equipo.name;
-                    if(equipo.id === 119) opt2.selected = true; // Dodgers seleccionado por defecto
+                    if(equipo.id === 119) opt2.selected = true;
                     
                     grupo1.appendChild(opt1);
                     grupo2.appendChild(opt2);
@@ -259,12 +307,11 @@
                 };
             } else {
                 const lmbKey = valorSeleccionado.split("-")[1];
-                // Base de datos completa para los 20 equipos de la LMB
                 const datosLMB = {
                     diablos:     { bateo: 0.295, hr: 180, sb: 115, era: 4.10, so: 1120 },
                     sultanes:    { bateo: 0.282, hr: 145, sb: 95,  era: 4.35, so: 1050 },
                     pericos:     { bateo: 0.278, hr: 130, sb: 88,  era: 4.60, so: 980 },
-                    toros:       { bateo: 0.270, hr: 155, sb: 104, era: 4.15, so: 1090 },
+                    toros:       { status: 0.270, hr: 155, sb: 104, era: 4.15, so: 1090 },
                     acereros:    { bateo: 0.275, hr: 160, sb: 90,  era: 3.95, so: 1110 },
                     leones:      { bateo: 0.268, hr: 125, sb: 100, era: 3.70, so: 1060 },
                     olmecas:     { bateo: 0.262, hr: 110, sb: 92,  era: 3.65, so: 1020 },
@@ -282,16 +329,23 @@
                     piratas:     { bateo: 0.252, hr: 105, sb: 78,  era: 4.85, so: 890 },
                     charros:     { bateo: 0.273, hr: 148, sb: 86,  era: 4.40, so: 1025 }
                 };
-                return datosLMB[lmbKey] || { bateo: 0, hr: 0, sb: 0, era: 0, so: 0 };
+                return datosLMB[lmbKey] || { bateo: 0.260, hr: 130, sb: 90, era: 4.20, so: 950 };
             }
         }
 
         async function compararEquipos() {
-            const e1 = document.getElementById("equipo1").value;
-            const e2 = document.getElementById("equipo2").value;
+            const select1 = document.getElementById("equipo1");
+            const select2 = document.getElementById("equipo2");
+            
+            const e1 = select1.value;
+            const e2 = select2.value;
+            
+            const nombreE1 = select1.options[select1.selectedIndex].text;
+            const nombreE2 = select2.options[select2.selectedIndex].text;
+            
             const boton = document.getElementById("btnComparar");
 
-            boton.innerText = "Consultando Servidores...";
+            boton.innerText = "Calculando Probabilidades...";
             boton.disabled = true;
 
             try {
@@ -321,8 +375,45 @@
                 aplicarColores("eraE1", "eraE2", datosE1.era < datosE2.era);
                 aplicarColores("soE1", "soE2", datosE1.so > datosE2.so);
 
+                // --- ALGORITMO DE PREDICCIÓN ---
+                let puntosE1 = 0;
+                let puntosE2 = 0;
+
+                if (datosE1.bateo > datosE2.bateo) puntosE1++; else puntosE2++;
+                if (datosE1.hr > datosE2.hr) puntosE1++; else puntosE2++;
+                if (datosE1.sb > datosE2.sb) puntosE1++; else puntosE2++;
+                if (datosE1.era < datosE2.era) puntosE1++; else puntosE2++; // Menor ERA es mejor
+                if (datosE1.so > datosE2.so) puntosE1++; else puntosE2++;
+
+                let ganadorPredicho = "";
+                if (puntosE1 > puntosE2) {
+                    ganadorPredicho = nombreE1;
+                } else if (puntosE2 > puntosE1) {
+                    ganadorPredicho = nombreE2;
+                } else {
+                    // Desempate: El que tenga mejor Pitcheo (ERA) gana el juego apretado
+                    ganadorPredicho = (datosE1.era < datosE2.era) ? nombreE1 : nombreE2;
+                }
+
+                // --- FÓRMULA DE ESTIMACIÓN DE CARRERAS TOTALES ---
+                const promedioERA = (datosE1.era + datosE2.era) / 2;
+                const promedioBateo = (datosE1.bateo + datosE2.bateo) / 2;
+                const sumaHR = (datosE1.hr + datosE2.hr);
+
+                // El pitcheo base define las carreras base, el bateo alto y los jonrones las aumentan
+                let carrerasEstimadas = Math.round((promedioERA * 1.6) + (promedioBateo * 6) + (sumaHR / 190));
+                
+                // Límites lógicos para asegurar marcadores reales de béisbol
+                if (carrerasEstimadas < 4) carrerasEstimadas = 4;
+                if (carrerasEstimadas > 16) carrerasEstimadas = 13;
+
+                // Desplegar los resultados en la tarjeta de abajo
+                document.getElementById("txtGanador").innerText = "🏆 " + ganadorPredicho;
+                document.getElementById("txtCarreras").innerText = carrerasEstimadas + " Carreras";
+                document.getElementById("panelPrediccion").style.display = "block";
+
             } catch (error) {
-                alert("Error al conectar con los servidores de estadísticas.");
+                alert("Error al procesar el pronóstico.");
                 console.error(error);
             } finally {
                 boton.innerText = "Comparar Equipos";
@@ -345,3 +436,4 @@
     </script>
 </body>
 </html>
+
