@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Sabermétrico Profesional - MLB</title>
+    <title>Scanner Sabermétrico Profesional + Lanzadores</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -44,10 +44,6 @@
             margin-top: 0;
             margin-bottom: 10px;
             text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
         }
         .pick-info {
             text-align: center;
@@ -83,7 +79,7 @@
         .selector-horario {
             margin-bottom: 20px;
         }
-        select {
+        select, .input-pitcher {
             width: 100%;
             padding: 12px;
             border-radius: 8px;
@@ -93,13 +89,14 @@
             font-size: 14px;
             box-sizing: border-box;
         }
-        .selector-zona select {
+        .selector-zona select, .selector-zona .input-pitcher {
             width: 48%;
         }
-        optgroup {
-            background-color: #1e1e1e;
-            color: #4CAF50;
+        .input-pitcher {
+            color: #FFD700;
             font-weight: bold;
+            text-align: center;
+            border: 1px dashed #555;
         }
         button {
             width: 100%;
@@ -159,14 +156,6 @@
             text-align: center;
             display: none;
         }
-        .tarjeta-prediccion h2 {
-            color: #4CAF50;
-            font-size: 16px;
-            margin-top: 0;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
         .destaque-ganador { color: #4CAF50; font-weight: bold; font-size: 18px; display: block; margin-top: 4px; }
         .destaque-carreras { color: #FFD700; font-weight: bold; font-size: 22px; display: block; margin-top: 4px; }
     </style>
@@ -176,24 +165,30 @@
     <div class="app-container">
         <h1>⚾ Scanner Sabermétrico</h1>
 
-        <!-- SECCIÓN INTELIGENTE DE ESCANEO DE HOY -->
+        <!-- SCANNER AUTOMÁTICO DE HOY -->
         <div class="seccion-scanner" id="panelScanner">
-            <h3 class="scanner-titulo">🔥 Top Pick de la Jornada (MLB)</h3>
+            <h3 class="scanner-titulo">🔥 Top Pick de la Jornada + Pitcher</h3>
             <div id="scannerContenido" class="pick-info">
-                <span style="color: #aaa; font-size: 13px;">Analizando la cartelera de hoy en tiempo real...</span>
+                <span style="color: #aaa; font-size: 13px;">Escaneando abridores de hoy en la MLB...</span>
             </div>
         </div>
 
-        <span class="label-filtro">Simulador Manual / Ajuste Directo</span>
+        <span class="label-filtro">Selección de Equipos</span>
         <div class="selector-zona">
-            <select id="equipo1"><optgroup id="mlb-group1" label="Cargando escuadras..."></optgroup></select>
-            <select id="equipo2"><optgroup id="mlb-group2" label="Cargando escuadras..."></optgroup></select>
+            <select id="equipo1" onchange="actualizarPitchersManual()"><optgroup id="mlb-group1" label="Cargando..."></optgroup></select>
+            <select id="equipo2" onchange="actualizarPitchersManual()"><optgroup id="mlb-group2" label="Cargando..."></optgroup></select>
+        </div>
+
+        <span class="label-filtro">Lanzador Abridor Detectado</span>
+        <div class="selector-zona">
+            <input type="text" id="txtPitcherE1" class="input-pitcher" value="Cargando..." readonly>
+            <input type="text" id="txtPitcherE2" class="input-pitcher" value="Cargando..." readonly>
         </div>
 
         <div class="selector-horario">
-            <span class="label-filtro">Horario de Juego Detectado/Ajustado</span>
+            <span class="label-filtro">Horario y Medio Ambiente</span>
             <select id="horarioJuego">
-                <option value="noche">伺 Juego Nocturno (Reflectores / Ventaja Pitcheo)</option>
+                <option value="noche">🌃 Juego Nocturno (Reflectores / Ventaja Pitcheo)</option>
                 <option value="dia">☀️ Juego Diurno (Sol Directo / Ventaja Bateo)</option>
             </select>
         </div>
@@ -273,9 +268,15 @@
             "120": { name: "Washington Nationals", bateo: 0.243, ops: 0.695, hr: 145, era: 4.55, whip: 1.38 }
         };
 
+        // Lista de "Ases" o pitchers destacados para cruzamiento del algoritmo
+        const elitePitchers = ["Gerrit Cole", "Tarik Skubal", "Chris Sale", "Zack Wheeler", "Corbin Burnes", "Logan Gilbert", "Dylan Cease", "Luis Castillo"];
+
+        let mapaJuegosDeHoy = {};
+
         window.onload = async function() {
             configurarSelectores();
             await escanearJornadaDeHoy();
+            actualizarPitchersManual();
         };
 
         function configurarSelectores() {
@@ -287,24 +288,39 @@
                 let opt1 = document.createElement('option'); let opt2 = document.createElement('option');
                 opt1.value = id; opt1.innerText = datosMlbInternos[id].name;
                 opt2.value = id; opt2.innerText = datosMlbInternos[id].name;
-                if(id == "147") opt1.selected = true; // Yankees por defecto
-                if(id == "119") opt2.selected = true; // Dodgers por defecto
+                if(id == "147") opt1.selected = true; 
+                if(id == "119") opt2.selected = true; 
                 grupo1.appendChild(opt1); grupo2.appendChild(opt2);
             });
         }
 
-        // --- SISTEMA CORE DE SIMULACIÓN SABERMÉTRICA ---
-        function procesarSimulacion(idE1, idE2, horario) {
+        // --- NÚCLEO MATEMÁTICO AVANZADO CON FACTOR PITCHER ---
+        function procesarSimulacion(idE1, idE2, horario, pitcherE1, pitcherE2) {
             const d1 = datosMlbInternos[idE1];
             const d2 = datosMlbInternos[idE2];
             if(!d1 || !d2) return null;
 
             let puntosE1 = 0; let puntosE2 = 0;
 
+            // Evaluaciones base de equipo
             if (d1.bateo > d2.bateo) puntosE1++; else puntosE2++;
             if (d1.hr > d2.hr) puntosE1++; else puntosE2++;
-            if (d1.era < d2.era) puntosE1++; else puntosE2++;
 
+            // --- INYECCIÓN DE VARIABLE PITCHER A LA ERA ---
+            let eraE1 = d1.era;
+            let eraE2 = d2.era;
+
+            // Si es un lanzador de Élite (As), disminuye significativamente la efectividad de carreras rivales
+            if (elitePitchers.some(p => pitcherE1.includes(p))) eraE1 -= 0.80;
+            if (elitePitchers.some(p => pitcherE2.includes(p))) eraE2 -= 0.80;
+
+            // Si es un "Bullpen Day" o no anunciado, se penaliza la efectividad del equipo (+ carreras)
+            if (pitcherE1 === "Bullpen Day" || pitcherE1 === "Por Anunciar") eraE1 += 0.50;
+            if (pitcherE2 === "Bullpen Day" || pitcherE2 === "Por Anunciar") eraE2 += 0.50;
+
+            if (eraE1 < eraE2) puntosE1++; else puntosE2++;
+
+            // Ajuste de pesos por Clima/Horario
             if (horario === "dia") {
                 puntosE1 += (d1.ops > d2.ops) ? 2.0 : 0;
                 puntosE2 += (d2.ops > d1.ops) ? 2.0 : 0;
@@ -327,11 +343,12 @@
                 diferenciaCerteza = 0.5;
             }
 
-            // Estimación matemática del total de carreras
+            // Cálculo dinámico del total de carreras combinando ERA modificada por el Pitcher
             const sumaOPS = d1.ops + d2.ops;
-            const sumaWHIP = d1.whip + d2.whip;
-            let carrerasBase = (sumaOPS * 4) + (sumaWHIP * 1.3);
-            carrerasBase = (horario === "dia") ? carrerasBase * 1.09 : carrerasBase * 0.92;
+            let factorPitcheoCombinado = (eraE1 + eraE2) / 2;
+            let carrerasBase = (sumaOPS * 3.8) + (factorPitcheoCombinado * 0.9);
+            
+            carrerasBase = (horario === "dia") ? carrerasBase * 1.08 : carrerasBase * 0.91;
             
             let carrerasEstimadas = Math.round(carrerasBase);
             if (carrerasEstimadas < 4) carrerasEstimadas = 4;
@@ -346,16 +363,15 @@
             };
         }
 
-        // --- AUTOMATIZACIÓN: ESCANER DE LA CARTELERA REAL ---
+        // --- ESCANER AUTOMÁTICO DE HOY CON EXTRACCIÓN DE PITCHERS ---
         async function escanearJornadaDeHoy() {
             const divContenido = document.getElementById("scannerContenido");
             try {
-                // Consultamos el calendario real de la MLB de hoy de forma dinámica
                 const respuesta = await fetch('https://statsapi.mlb.com/api/v1/schedule?sportId=1');
                 const datos = await respuesta.json();
                 
-                if (!datos.dates || datos.dates.length === 0 || !datos.dates[0].games || datos.dates[0].games.length === 0) {
-                    divContenido.innerHTML = "❌ No hay juegos programados oficiales para hoy o la jornada terminó.";
+                if (!datos.dates || datos.dates.length === 0 || !datos.dates[0].games) {
+                    divContenido.innerHTML = "❌ No hay cartelera disponible o los juegos ya concluyeron hoy.";
                     return;
                 }
 
@@ -364,19 +380,26 @@
                 let maxCerteza = -1;
                 let horarioPick = "noche";
 
-                // Recorremos y evaluamos cada juego del calendario actual en base a estadísticas
+                mapaJuegosDeHoy = {}; // Limpiamos caché de la jornada
+
                 juegosHoy.forEach(juego => {
                     const idHome = juego.teams.home.team.id.toString();
                     const idAway = juego.teams.away.team.id.toString();
 
-                    // Comprobamos si ambos equipos están en nuestro radar analítico
+                    // Extraer los lanzadores abridores provistos por la MLB en vivo
+                    const pitcherHome = juego.teams.home.probablePitcher?.fullName || "Bullpen Day";
+                    const pitcherAway = juego.teams.away.probablePitcher?.fullName || "Bullpen Day";
+
+                    // Guardamos en nuestro mapa para el uso manual del usuario posterior
+                    mapaJuegosDeHoy[idHome] = pitcherHome;
+                    mapaJuegosDeHoy[idAway] = pitcherAway;
+
                     if (datosMlbInternos[idHome] && datosMlbInternos[idAway]) {
-                        // Determinar si es diurno o nocturno según la hora ISO del juego
-                        // Si es antes de las 16:00 (4 PM) hora local promedio o UTC corregido, lo tomamos como día
                         const horaJuego = new Date(juego.gameDate).getUTCHours();
                         const horarioEstablecido = (horaJuego >= 13 && horaJuego <= 21) ? "dia" : "noche";
 
-                        const sim = procesarSimulacion(idAway, idHome, horarioEstablecido);
+                        // El simulador procesa el juego inyectando al abridor directo de la API
+                        const sim = procesarSimulacion(idAway, idHome, horarioEstablecido, pitcherAway, pitcherHome);
 
                         if (sim && sim.certeza > maxCerteza) {
                             maxCerteza = sim.certeza;
@@ -384,6 +407,8 @@
                             horarioPick = horarioEstablecido;
                             mejorPick.homeName = datosMlbInternos[idHome].name;
                             mejorPick.awayName = datosMlbInternos[idAway].name;
+                            mejorPick.pHome = pitcherHome;
+                            mejorPick.pAway = pitcherAway;
                         }
                     }
                 });
@@ -391,29 +416,43 @@
                 if (mejorPick) {
                     divContenido.innerHTML = `
                         <div class="pick-equipos">${mejorPick.awayName} vs ${mejorPick.homeName}</div>
-                        <div class="pick-meta">Condición: ${horarioPick === 'dia' ? '☀️ Diurno (Alta Proyección)' : '🌃 Nocturno (Ajuste de Pitcheo)'}</div>
-                        <div style="margin-top: 8px;">
-                            🎯 Victoria Recomendada: <strong style="color: #4CAF50;">${mejorPick.ganador}</strong><br>
-                            📊 Total de Carreras Estimado: <strong style="color: #FFD700;">${mejorPick.carreras} Carreras</strong>
+                        <div class="pick-meta">
+                            Abridores: 👤 ${mejorPick.pAway} vs 👤 ${mejorPick.pHome}<br>
+                            Entorno: ${horarioPick === 'dia' ? '☀️ Juego de Tarde' : '🌃 Juego de Noche'}
+                        </div>
+                        <div style="margin-top: 5px;">
+                            🎯 Recomendación: <strong style="color: #4CAF50;">${mejorPick.ganador}</strong><br>
+                            📊 Total Carreras: <strong style="color: #FFD700;">${mejorPick.carreras} O/U</strong>
                         </div>
                     `;
                 } else {
-                    divContenido.innerHTML = "⚠️ Juegos del día detectados, pero faltan coeficientes históricos de alguna escuadra para dar un pick óptimo.";
+                    divContenido.innerHTML = "⚠️ Cartelera procesada sin picks de alta confianza estadística.";
                 }
 
             } catch (error) {
                 console.error(error);
-                divContenido.innerHTML = "⚠️ No se pudo escanear el servidor de MLB (Verifica tu conexión o CORS).";
+                divContenido.innerHTML = "⚠️ No se pudo enlazar la rotación de abridores (CORS o Servidor MLB ocupado).";
             }
         }
 
-        // --- EJECUCIÓN MANUAL ---
+        // --- ACTUALIZACIÓN EN SELECTORES MANUALES ---
+        function actualizarPitchersManual() {
+            const e1 = document.getElementById("equipo1").value;
+            const e2 = document.getElementById("equipo2").value;
+
+            // Busca si juegan hoy para poner el pitcher real, si no, lo marca como genérico
+            document.getElementById("txtPitcherE1").value = mapaJuegosDeHoy[e1] || "Por Anunciar";
+            document.getElementById("txtPitcherE2").value = mapaJuegosDeHoy[e2] || "Por Anunciar";
+        }
+
         function compararEquiposManual() {
             const e1 = document.getElementById("equipo1").value;
             const e2 = document.getElementById("equipo2").value;
             const horario = document.getElementById("horarioJuego").value;
+            const p1 = document.getElementById("txtPitcherE1").value;
+            const p2 = document.getElementById("txtPitcherE2").value;
 
-            const sim = procesarSimulacion(e1, e2, horario);
+            const sim = procesarSimulacion(e1, e2, horario, p1, p2);
             if(!sim) return;
 
             document.getElementById("bateoE1").innerText = sim.datosE1.bateo.toFixed(3);
