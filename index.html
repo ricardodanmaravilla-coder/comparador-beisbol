@@ -3,203 +3,156 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MLB GOD MODE 💸</title>
+<title>MLB Bets PRO</title>
 
 <style>
-body { font-family: Arial; background:#0b1120; color:#fff; margin:0; padding:10px;}
-.container { max-width:520px; margin:auto;}
-h1 { text-align:center; color:#38bdf8;}
+body {
+    margin:0;
+    font-family: Arial;
+    background:#0b0f1a;
+    color:#fff;
+}
 
-.card { background:#1e293b; padding:15px; border-radius:12px; margin-bottom:10px;}
-.game { background:#0f172a; padding:10px; margin-bottom:6px; border-radius:8px; cursor:pointer;}
-.active { border-left:4px solid #38bdf8;}
+header {
+    background:#111827;
+    padding:15px;
+    text-align:center;
+    font-weight:bold;
+    font-size:18px;
+}
 
-.badge { padding:3px 6px; border-radius:6px; font-size:11px;}
-.green{background:#16a34a;}
-.red{background:#dc2626;}
-.blue{background:#0284c7;}
-.yellow{background:#eab308; color:#000;}
+#games {
+    padding:10px;
+}
+
+.card {
+    background:#111827;
+    border-radius:12px;
+    padding:12px;
+    margin-bottom:12px;
+    box-shadow:0 0 10px rgba(0,0,0,0.5);
+}
+
+.teams {
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:10px;
+}
+
+.team {
+    width:48%;
+}
+
+.odds {
+    display:flex;
+    justify-content:space-between;
+    margin-top:10px;
+}
+
+.pick {
+    margin-top:10px;
+    padding:10px;
+    border-radius:8px;
+    text-align:center;
+    font-weight:bold;
+}
+
+.value {
+    background:#064e3b;
+}
+
+.no-value {
+    background:#3f1d1d;
+}
 </style>
+
 </head>
 
 <body>
-<div class="container">
 
-<h1>⚾ MLB GOD MODE</h1>
-<div id="dashboard"></div>
+<header>📊 MLB BETS PRO</header>
 
-<div id="main"></div>
-
-<h3>📅 Juegos</h3>
-<div id="list"></div>
-
-</div>
+<div id="games">Cargando juegos...</div>
 
 <script>
-const bankroll = 1000;
-const kellyFraction = 0.5; // 🔥 half Kelly (seguro)
 
-let juegos = [];
+// =========================
+// ⚙️ CONFIG
+// =========================
 
-// ⚡ SIMULADOR DE ODDS (reemplazar con API real)
-function getOdds(){
-    return {
-        home: (1.70 + Math.random()*0.5).toFixed(2),
-        away: (1.90 + Math.random()*0.6).toFixed(2),
-        total: 8 + Math.random()*2
-    };
-}
+const API_KEY = "TU_API_KEY_AQUI"; // 👈 pon tu key
+const PROXY = "https://corsproxy.io/?";
 
-// 📡 AQUÍ PUEDES CONECTAR API REAL
-// fetch(`https://api.the-odds-api.com/...`)
+// =========================
+// 📡 FETCH MLB
+// =========================
 
-async function init(){
-    const today = new Date();
-    const y = today.getFullYear();
-    const m = String(today.getMonth()+1).padStart(2,'0');
-    const d = String(today.getDate()).padStart(2,'0');
+async function getGames() {
+    const today = new Date().toISOString().split("T")[0];
 
-    const url = `https://corsproxy.io/?https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${y}-${m}-${d}&hydrate=probablePitcher(stats(type=season,season=${y},group=pitching)),team(stats(type=season,season=${y},group=[hitting,pitching]))`;
-
-    const res = await fetch(url);
+    const res = await fetch(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${today}`);
     const data = await res.json();
 
-    const games = data.dates?.[0]?.games || [];
+    if (!data.dates.length) return [];
 
-    juegos = [];
-
-    games.forEach((g,i)=>{
-        const away = g.teams.away;
-        const home = g.teams.home;
-
-        let sA={}, sH={};
-        (away.team.teamStats||[]).forEach(s=>Object.assign(sA,s.splits?.[0]?.stat||{}));
-        (home.team.teamStats||[]).forEach(s=>Object.assign(sH,s.splits?.[0]?.stat||{}));
-
-        const opsA=parseFloat(sA.ops)||0.72;
-        const opsH=parseFloat(sH.ops)||0.72;
-
-        const eraA=parseFloat(away.probablePitcher?.stats?.[0]?.splits?.[0]?.stat?.era)||4.5;
-        const eraH=parseFloat(home.probablePitcher?.stats?.[0]?.splits?.[0]?.stat?.era)||4.5;
-
-        let expA=(opsA*5+eraH)/2;
-        let expH=(opsH*5+eraA)/2;
-
-        const pA=Math.pow(expA,1.83);
-        const pH=Math.pow(expH,1.83);
-
-        let probA=pA/(pA+pH);
-        let probH=1-probA;
-
-        probH+=0.03; probA-=0.03;
-
-        // 💰 ODDS
-        const odds = getOdds();
-        const oA=parseFloat(odds.away);
-        const oH=parseFloat(odds.home);
-
-        // EV
-        const evA=(probA*oA)-1;
-        const evH=(probH*oH)-1;
-
-        // TOTAL
-        const totalProj = expA+expH;
-        const line = odds.total;
-
-        const probOver = totalProj / (line*1.1);
-        const probUnder = 1 - probOver;
-
-        const evOver = (probOver*1.90)-1;
-        const evUnder = (probUnder*1.90)-1;
-
-        const bestEV = Math.max(evA, evH, evOver, evUnder);
-
-        // PICK
-        let pick="NO BET";
-        if(bestEV>0.15) pick="💎 BEST BET";
-        else if(bestEV>0.07) pick="🔥 STRONG";
-        else if(bestEV>0.03) pick="✅ VALUE";
-
-        // KELLY
-        const kelly = bestEV>0 ? (bestEV/(Math.max(oA,oH)-1))*kellyFraction : 0;
-        const stake = bankroll * kelly;
-
-        juegos.push({
-            id:i,
-            away:away.team.name,
-            home:home.team.name,
-            probA,probH,
-            oA,oH,
-            evA,evH,
-            totalProj,line,evOver,evUnder,
-            bestEV,pick,stake
-        });
-    });
-
-    juegos.sort((a,b)=>b.bestEV-a.bestEV);
-
-    renderDashboard();
-    renderList();
-    selectGame(0);
+    return data.dates[0].games;
 }
 
-function renderDashboard(){
-    const best=juegos[0];
+// =========================
+// 💰 FETCH ODDS
+// =========================
 
-    document.getElementById("dashboard").innerHTML=`
-    <div class="card">
-        <h3>🔥 Mejor Apuesta del Día</h3>
-        <p>${best.away} @ ${best.home}</p>
-        <p>EV: ${(best.bestEV*100).toFixed(1)}%</p>
-        <p>Stake: $${best.stake.toFixed(0)}</p>
-        <p>Pick: ${best.pick}</p>
-    </div>
-    `;
+async function getRealOdds() {
+    try {
+        const url = `${PROXY}https://api.the-odds-api.com/v4/sports/baseball_mlb/odds/?regions=us&markets=h2h,totals&oddsFormat=decimal&apiKey=${API_KEY}`;
+        const res = await fetch(url);
+        return await res.json();
+    } catch(e){
+        console.log("Error odds", e);
+        return null;
+    }
 }
 
-function renderList(){
-    const list=document.getElementById("list");
-    list.innerHTML="";
+// =========================
+// 🧠 CACHE INTELIGENTE
+// =========================
 
-    juegos.forEach((g,i)=>{
-        list.innerHTML+=`
-        <div class="game" onclick="selectGame(${i})" id="g${i}">
-            ${g.away} @ ${g.home}
-            <span class="badge blue">${(g.bestEV*100).toFixed(1)}%</span>
-        </div>`;
-    });
+function getCacheTime() {
+    const hour = new Date().getHours();
+
+    if (hour < 12) return 30 * 60 * 1000;
+    if (hour < 18) return 10 * 60 * 1000;
+    return 5 * 60 * 1000;
 }
 
-function selectGame(i){
-    document.querySelectorAll('.game').forEach(x=>x.classList.remove('active'));
-    document.getElementById("g"+i).classList.add("active");
+async function getOddsSmart() {
+    const CACHE_TIME = getCacheTime();
+    const now = Date.now();
 
-    const g=juegos[i];
+    const saved = localStorage.getItem("oddsData");
+    const savedTime = localStorage.getItem("oddsTime");
 
-    document.getElementById("main").innerHTML=`
-    <div class="card">
-        <h2>${g.away} @ ${g.home}</h2>
+    if (saved && savedTime && (now - savedTime < CACHE_TIME)) {
+        console.log("💾 Cache local");
+        return JSON.parse(saved);
+    }
 
-        <p>💰 ML EV: ${(Math.max(g.evA,g.evH)*100).toFixed(1)}%</p>
-        <p>🎯 Total: ${g.totalProj.toFixed(1)} vs Línea ${g.line.toFixed(1)}</p>
+    console.log("🌐 Fetch odds");
 
-        <p>OVER EV: ${(g.evOver*100).toFixed(1)}%</p>
-        <p>UNDER EV: ${(g.evUnder*100).toFixed(1)}%</p>
+    const data = await getRealOdds();
 
-        <hr>
+    localStorage.setItem("oddsData", JSON.stringify(data));
+    localStorage.setItem("oddsTime", now);
 
-        <p>${g.away} → ${(g.probA*100).toFixed(1)}% | ${g.oA}</p>
-        <p>${g.home} → ${(g.probH*100).toFixed(1)}% | ${g.oH}</p>
-
-        <hr>
-
-        <p><b>${g.pick}</b></p>
-        <p>Stake: $${g.stake.toFixed(0)}</p>
-    </div>
-    `;
+    return data;
 }
 
-init();
-</script>
-</body>
-</html>
+// =========================
+// 🔎 MATCH ODDS
+// =========================
+
+function normalize(name){
+    return name.toLowerCase().replace(/[^a-z]/g,'');
+}
+
+function findOdds(game, odds
