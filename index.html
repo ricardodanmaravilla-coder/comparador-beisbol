@@ -32,16 +32,32 @@
             display: flex;
             justify-content: space-between;
             gap: 10px;
+            margin-bottom: 15px;
+        }
+        .selector-horario {
             margin-bottom: 20px;
         }
+        .label-filtro {
+            font-size: 11px;
+            color: #aaa;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 5px;
+        }
         select {
-            width: 48%;
+            width: 100%;
             padding: 12px;
             border-radius: 8px;
             background-color: #2a2a2a;
             color: white;
             border: 1px solid #444;
             font-size: 14px;
+            box-sizing: border-box;
+        }
+        .selector-zona select {
+            width: 48%;
         }
         optgroup {
             background-color: #1e1e1e;
@@ -148,6 +164,7 @@
     <div class="app-container">
         <h1>⚾ Comparador Sabermétrico</h1>
 
+        <span class="label-filtro">Selección de Equipos</span>
         <div class="selector-zona">
             <select id="equipo1">
                 <optgroup id="mlb-group1" label="Grandes Ligas (MLB)">
@@ -206,7 +223,15 @@
             </select>
         </div>
 
-        <button id="btnComparar" onclick="compararEquipos()">Comparar Equipos</button>
+        <div class="selector-horario">
+            <span class="label-filtro">Horario y Medio Ambiente</span>
+            <select id="horarioJuego">
+                <option value="noche">🌃 Juego Nocturno (Reflectores / Aire Denso / Ventaja Pitcheo)</option>
+                <option value="dia">☀️ Juego Diurno (Sol Directo / Aire Cálido / Ventaja Bateo)</option>
+            </select>
+        </div>
+
+        <button id="btnComparar" onclick="compararEquipos()">Simular Partido</button>
 
         <div class="tabla-comparativa">
             <div class="fila">
@@ -250,7 +275,6 @@
     </div>
 
     <script>
-        // Base de datos de respaldo global para los 30 equipos de la MLB (Solución a CORS/Red)
         const listaRespaldolMLB = [
             { id: 109, name: "Arizona Diamondbacks" }, { id: 144, name: "Atlanta Braves" },
             { id: 110, name: "Baltimore Orioles" }, { id: 111, name: "Boston Red Sox" },
@@ -276,30 +300,20 @@
                 const data = await res.json();
                 equiposMLB = data.teams.sort((a, b) => a.name.localeCompare(b.name));
             } catch (error) {
-                console.warn("API de MLB bloqueada por el navegador (CORS). Activando base sabermétrica de respaldo local.");
+                console.warn("API de MLB bloqueada por CORS. Cargando base local.");
                 equiposMLB = listaRespaldolMLB.sort((a, b) => a.name.localeCompare(b.name));
             }
             
             const grupo1 = document.getElementById('mlb-group1');
             const grupo2 = document.getElementById('mlb-group2');
-            
-            grupo1.innerHTML = '';
-            grupo2.innerHTML = '';
+            grupo1.innerHTML = ''; grupo2.innerHTML = '';
             
             equiposMLB.forEach(equipo => {
                 let opt1 = document.createElement('option');
                 let opt2 = document.createElement('option');
-                
-                opt1.value = `mlb-${equipo.id}`;
-                opt1.innerText = equipo.name;
-                if(equipo.id === 147) opt1.selected = true; // Yankees por defecto
-                
-                opt2.value = `mlb-${equipo.id}`;
-                opt2.innerText = equipo.name;
-                if(equipo.id === 119) opt2.selected = true; // Dodgers por defecto
-                
-                grupo1.appendChild(opt1);
-                grupo2.appendChild(opt2);
+                opt1.value = `mlb-${equipo.id}`; opt1.innerText = equipo.name; if(equipo.id === 147) opt1.selected = true;
+                opt2.value = `mlb-${equipo.id}`; opt2.innerText = equipo.name; if(equipo.id === 119) opt2.selected = true;
+                grupo1.appendChild(opt1); grupo2.appendChild(opt2);
             });
         };
 
@@ -311,14 +325,12 @@
                         fetch(`https://statsapi.mlb.com/api/v1/teams/${teamId}/stats?stats=season&group=hitting`),
                         fetch(`https://statsapi.mlb.com/api/v1/teams/${teamId}/stats?stats=season&group=pitching`)
                     ]);
-
                     const dataBateo = await resBateo.json();
                     const dataPitcheo = await resPitcheo.json();
-
                     const statsBateo = dataBateo.stats[0]?.splits[0]?.stat || {};
                     const statsPitcheo = dataPitcheo.stats[0]?.splits[0]?.stat || {};
 
-                    if (!statsBateo.avg && !statsPitcheo.era) throw new Error("Datos vacíos de API");
+                    if (!statsBateo.avg && !statsPitcheo.era) throw new Error();
 
                     return {
                         bateo: parseFloat(statsBateo.avg || 0),
@@ -328,38 +340,37 @@
                         whip: parseFloat(statsPitcheo.whip || 0)
                     };
                 } catch (e) {
-                    // Datos Sabermétricos de Respaldo MLB calibrados
                     const datosMlbInternos = {
-                        "109": { bateo: 0.250, ops: 0.730, hr: 165, era: 4.48, whip: 1.32 }, // Dbacks
-                        "144": { bateo: 0.258, ops: 0.760, hr: 220, era: 3.75, whip: 1.25 }, // Braves
-                        "110": { bateo: 0.255, ops: 0.755, hr: 230, era: 3.90, whip: 1.24 }, // Orioles
-                        "111": { bateo: 0.256, ops: 0.748, hr: 190, era: 4.10, whip: 1.28 }, // Red Sox
-                        "112": { bateo: 0.242, ops: 0.725, hr: 170, era: 3.80, whip: 1.26 }, // Cubs
-                        "145": { bateo: 0.220, ops: 0.630, hr: 130, era: 4.90, whip: 1.45 }, // White Sox
-                        "113": { bateo: 0.244, ops: 0.715, hr: 185, era: 4.54, whip: 1.35 }, // Reds
-                        "114": { bateo: 0.245, ops: 0.710, hr: 160, era: 3.70, whip: 1.22 }, // Guardians
-                        "115": { bateo: 0.254, ops: 0.735, hr: 160, era: 5.40, whip: 1.51 }, // Rockies
-                        "116": { bateo: 0.240, ops: 0.705, hr: 165, era: 3.95, whip: 1.26 }, // Tigers
-                        "117": { bateo: 0.262, ops: 0.765, hr: 215, era: 3.85, whip: 1.25 }, // Astros
-                        "118": { bateo: 0.248, ops: 0.720, hr: 160, era: 3.90, whip: 1.26 }, // Royals
-                        "108": { bateo: 0.245, ops: 0.718, hr: 195, era: 4.45, whip: 1.34 }, // Angels
-                        "119": { bateo: 0.265, ops: 0.795, hr: 240, era: 3.78, whip: 1.22 }, // Dodgers
-                        "146": { bateo: 0.241, ops: 0.690, hr: 140, era: 4.22, whip: 1.31 }, // Marlins
-                        "158": { bateo: 0.244, ops: 0.730, hr: 175, era: 3.72, whip: 1.24 }, // Brewers
-                        "142": { bateo: 0.246, ops: 0.745, hr: 195, era: 4.15, whip: 1.27 }, // Twins
-                        "121": { bateo: 0.248, ops: 0.738, hr: 200, era: 4.12, whip: 1.30 }, // Mets
-                        "147": { bateo: 0.252, ops: 0.768, hr: 235, era: 3.74, whip: 1.24 }, // Yankees
-                        "133": { bateo: 0.233, ops: 0.695, hr: 170, era: 4.70, whip: 1.40 }, // Athletics
-                        "143": { bateo: 0.257, ops: 0.750, hr: 210, era: 3.65, whip: 1.20 }, // Phillies
-                        "134": { bateo: 0.236, ops: 0.685, hr: 155, era: 4.10, whip: 1.30 }, // Pirates
-                        "135": { bateo: 0.254, ops: 0.740, hr: 185, era: 3.92, whip: 1.26 }, // Padres
-                        "137": { bateo: 0.242, ops: 0.710, hr: 165, era: 4.02, whip: 1.29 }, // Giants
-                        "136": { bateo: 0.232, ops: 0.700, hr: 180, era: 3.48, whip: 1.15 }, // Mariners
-                        "138": { bateo: 0.245, ops: 0.710, hr: 160, era: 4.18, whip: 1.33 }, // Cardinals
-                        "139": { bateo: 0.244, ops: 0.720, hr: 160, era: 3.92, whip: 1.24 }, // Rays
-                        "140": { bateo: 0.252, ops: 0.745, hr: 195, era: 4.28, whip: 1.31 }, // Rangers
-                        "141": { bateo: 0.242, ops: 0.722, hr: 165, era: 3.98, whip: 1.27 }, // Blue Jays
-                        "120": { bateo: 0.243, ops: 0.695, hr: 145, era: 4.55, whip: 1.38 }  // Nationals
+                        "109": { bateo: 0.250, ops: 0.730, hr: 165, era: 4.48, whip: 1.32 },
+                        "144": { bateo: 0.258, ops: 0.760, hr: 220, era: 3.75, whip: 1.25 },
+                        "110": { bateo: 0.255, ops: 0.755, hr: 230, era: 3.90, whip: 1.24 },
+                        "111": { bateo: 0.256, ops: 0.748, hr: 190, era: 4.10, whip: 1.28 },
+                        "112": { bateo: 0.242, ops: 0.725, hr: 170, era: 3.80, whip: 1.26 },
+                        "145": { bateo: 0.220, ops: 0.630, hr: 130, era: 4.90, whip: 1.45 },
+                        "113": { bateo: 0.244, ops: 0.715, hr: 185, era: 4.54, whip: 1.35 },
+                        "114": { bateo: 0.245, ops: 0.710, hr: 160, era: 3.70, whip: 1.22 },
+                        "115": { bateo: 0.254, ops: 0.735, hr: 160, era: 5.40, whip: 1.51 },
+                        "116": { bateo: 0.240, ops: 0.705, hr: 165, era: 3.95, whip: 1.26 },
+                        "117": { bateo: 0.262, ops: 0.765, hr: 215, era: 3.85, whip: 1.25 },
+                        "118": { bateo: 0.248, ops: 0.720, hr: 160, era: 3.90, whip: 1.26 },
+                        "108": { bateo: 0.245, ops: 0.718, hr: 195, era: 4.45, whip: 1.34 },
+                        "119": { bateo: 0.265, ops: 0.795, hr: 240, era: 3.78, whip: 1.22 },
+                        "146": { bateo: 0.241, ops: 0.690, hr: 140, era: 4.22, whip: 1.31 },
+                        "158": { bateo: 0.244, ops: 0.730, hr: 175, era: 3.72, whip: 1.24 },
+                        "142": { bateo: 0.246, ops: 0.745, hr: 195, era: 4.15, whip: 1.27 },
+                        "121": { bateo: 0.248, ops: 0.738, hr: 200, era: 4.12, whip: 1.30 },
+                        "147": { bateo: 0.252, ops: 0.768, hr: 235, era: 3.74, whip: 1.24 },
+                        "133": { bateo: 0.233, ops: 0.695, hr: 170, era: 4.70, whip: 1.40 },
+                        "143": { bateo: 0.257, ops: 0.750, hr: 210, era: 3.65, whip: 1.20 },
+                        "134": { bateo: 0.236, ops: 0.685, hr: 155, era: 4.10, whip: 1.30 },
+                        "135": { bateo: 0.254, ops: 0.740, hr: 185, era: 3.92, whip: 1.26 },
+                        "137": { bateo: 0.242, ops: 0.710, hr: 165, era: 4.02, whip: 1.29 },
+                        "136": { bateo: 0.232, ops: 0.700, hr: 180, era: 3.48, whip: 1.15 },
+                        "138": { bateo: 0.245, ops: 0.710, hr: 160, era: 4.18, whip: 1.33 },
+                        "139": { bateo: 0.244, ops: 0.720, hr: 160, era: 3.92, whip: 1.24 },
+                        "140": { bateo: 0.252, ops: 0.745, hr: 195, era: 4.28, whip: 1.31 },
+                        "141": { bateo: 0.242, ops: 0.722, hr: 165, era: 3.98, whip: 1.27 },
+                        "120": { bateo: 0.243, ops: 0.695, hr: 145, era: 4.55, whip: 1.38 }
                     };
                     return datosMlbInternos[teamId] || { bateo: 0.248, ops: 0.725, hr: 170, era: 4.10, whip: 1.28 };
                 }
@@ -394,36 +405,29 @@
         async function compararEquipos() {
             const select1 = document.getElementById("equipo1");
             const select2 = document.getElementById("equipo2");
+            const horario = document.getElementById("horarioJuego").value;
             
-            const e1 = select1.value;
-            const e2 = select2.value;
-            
+            const e1 = select1.value; const e2 = select2.value;
             const nombreE1 = select1.options[select1.selectedIndex].text;
             const nombreE2 = select2.options[select2.selectedIndex].text;
             
             const boton = document.getElementById("btnComparar");
-
-            boton.innerText = "Ejecutando Modelos...";
+            boton.innerText = "Calculando Coeficientes...";
             boton.disabled = true;
 
             try {
                 const [datosE1, datosE2] = await Promise.all([
-                    obtenerEstadisticas(e1),
-                    obtenerEstadisticas(e2)
+                    obtenerEstadisticas(e1), obtenerEstadisticas(e2)
                 ]);
 
                 document.getElementById("bateoE1").innerText = datosE1.bateo.toFixed(3);
                 document.getElementById("bateoE2").innerText = datosE2.bateo.toFixed(3);
-                
                 document.getElementById("opsE1").innerText = datosE1.ops.toFixed(3);
                 document.getElementById("opsE2").innerText = datosE2.ops.toFixed(3);
-                
                 document.getElementById("hrE1").innerText = datosE1.hr;
                 document.getElementById("hrE2").innerText = datosE2.hr;
-
                 document.getElementById("eraE1").innerText = datosE1.era.toFixed(2);
                 document.getElementById("eraE2").innerText = datosE2.era.toFixed(2);
-
                 document.getElementById("whipE1").innerText = datosE1.whip.toFixed(2);
                 document.getElementById("whipE2").innerText = datosE2.whip.toFixed(2);
                 
@@ -433,56 +437,65 @@
                 aplicarColores("eraE1", "eraE2", datosE1.era < datosE2.era);
                 aplicarColores("whipE1", "whipE2", datosE1.whip < datosE2.whip);
 
-                let puntosE1 = 0;
-                let puntosE2 = 0;
+                // --- ALGORITMO INTEGRADO DÍA/NOCHE ---
+                let puntosE1 = 0; let puntosE2 = 0;
 
                 if (datosE1.bateo > datosE2.bateo) puntosE1++; else puntosE2++;
-                if (datosE1.ops > datosE2.ops) puntosE1 += 1.5; else puntosE2 += 1.5; 
                 if (datosE1.hr > datosE2.hr) puntosE1++; else puntosE2++;
                 if (datosE1.era < datosE2.era) puntosE1++; else puntosE2++;
-                if (datosE1.whip < datosE2.whip) puntosE1 += 1.5; else puntosE2 += 1.5; 
 
-                let ganadorPredicho = "";
-                if (puntosE1 > puntosE2) {
-                    ganadorPredicho = nombreE1;
-                } else if (puntosE2 > puntosE1) {
-                    ganadorPredicho = nombreE2;
+                // Asignación de pesos dinámicos sabermétricos
+                if (horario === "dia") {
+                    // El Sol/Calor premia aún más al equipo con mayor poder destructivo (OPS)
+                    puntosE1 += (datosE1.ops > datosE2.ops) ? 2.0 : 0;
+                    puntosE2 += (datosE2.ops > datosE1.ops) ? 2.0 : 0;
+                    puntosE1 += (datosE1.whip < datosE2.whip) ? 1.0 : 0;
+                    puntosE2 += (datosE2.whip < datosE1.whip) ? 1.0 : 0;
                 } else {
-                    ganadorPredicho = (datosE1.whip < datosE2.whip) ? nombreE1 : nombreE2;
+                    // La Noche/Humedad premia fuertemente al equipo con lanzadores que controlan la zona (WHIP)
+                    puntosE1 += (datosE1.ops > datosE2.ops) ? 1.0 : 0;
+                    puntosE2 += (datosE2.ops > datosE1.ops) ? 1.0 : 0;
+                    puntosE1 += (datosE1.whip < datosE2.whip) ? 2.0 : 0;
+                    puntosE2 += (datosE2.whip < datosE1.whip) ? 2.0 : 0;
                 }
 
+                let ganadorPredicho = "";
+                if (puntosE1 > puntosE2) ganadorPredicho = nombreE1;
+                else if (puntosE2 > puntosE1) ganadorPredicho = nombreE2;
+                else ganadorPredicho = (datosE1.whip < datosE2.whip) ? nombreE1 : nombreE2;
+
+                // --- AJUSTE MATEMÁTICO DE CARRERAS SEGÚN DENSIDAD DEL AIRE ---
                 const sumaOPS = datosE1.ops + datosE2.ops;
                 const sumaWHIP = datosE1.whip + datosE2.whip;
+                let carrerasBase = (sumaOPS * 4) + (sumaWHIP * 1.3);
 
-                let carrerasEstimadas = Math.round((sumaOPS * 4) + (sumaWHIP * 1.3));
-                
+                if (horario === "dia") {
+                    carrerasBase = carrerasBase * 1.09; // Aumento del 9% en promedio por la física de la tarde
+                } else {
+                    carrerasBase = carrerasBase * 0.92; // Reducción del 8% por resistencia del aire nocturno
+                }
+
+                let carrerasEstimadas = Math.round(carrerasBase);
                 if (carrerasEstimadas < 4) carrerasEstimadas = 4;
-                if (carrerasEstimadas > 15) carrerasEstimadas = 14;
+                if (carrerasEstimadas > 16) carrerasEstimadas = 15;
 
                 document.getElementById("txtGanador").innerText = "🏆 " + ganadorPredicho;
                 document.getElementById("txtCarreras").innerText = carrerasEstimadas + " Carreras en Total";
                 document.getElementById("panelPrediccion").style.display = "block";
 
             } catch (error) {
-                alert("Error al procesar la simulación de datos.");
+                alert("Error al procesar el simulador.");
                 console.error(error);
             } finally {
-                boton.innerText = "Comparar Equipos";
+                boton.innerText = "Simular Partido";
                 boton.disabled = false;
             }
         }
 
         function aplicarColores(id1, id2, condicionGanaE1) {
-            const el1 = document.getElementById(id1);
-            const el2 = document.getElementById(id2);
-
-            if (condicionGanaE1) {
-                el1.className = "col-equipo ganador";
-                el2.className = "col-equipo perdedor";
-            } else {
-                el1.className = "col-equipo perdedor";
-                el2.className = "col-equipo ganador";
-            }
+            const el1 = document.getElementById(id1); const el2 = document.getElementById(id2);
+            if (condicionGanaE1) { el1.className = "col-equipo ganador"; el2.className = "col-equipo perdedor"; } 
+            else { el1.className = "col-equipo perdedor"; el2.className = "col-equipo ganador"; }
         }
     </script>
 </body>
