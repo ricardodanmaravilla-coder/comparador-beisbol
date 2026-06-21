@@ -3,56 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLB Predictor Bot</title>
+    <title>MLB Predictor Pro | Moneyball Edition</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 500px;
-            width: 100%;
-            background: #1e293b;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-            padding: 20px;
-            border: 1px solid #334155;
-            box-sizing: border-box;
-        }
-        h1 { text-align: center; color: #38bdf8; margin-top: 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0b1120; color: #f8fafc; margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
+        .container { max-width: 500px; width: 100%; background: #1e293b; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); padding: 20px; border: 1px solid #334155; box-sizing: border-box; }
+        h1 { text-align: center; color: #38bdf8; margin-top: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 2px; }
         .date { text-align: center; color: #94a3b8; font-size: 13px; margin-bottom: 20px; }
-        .matchup { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 12px 15px; border-radius: 12px; margin-bottom: 15px; font-weight: bold; font-size: 15px; border-left: 5px solid #38bdf8; }
-        .condition { font-size: 11px; background: #334155; padding: 3px 8px; border-radius: 20px; color: #cbd5e1; }
-        .section-title { color: #94a3b8; font-size: 13px; margin-top: 20px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 3px; }
-        .prediction-card { background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%); padding: 18px; border-radius: 12px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(3, 105, 161, 0.3); border: 1px solid #2563eb; }
-        .prediction-card .fav { font-size: 20px; font-weight: 800; color: #ffffff; margin-bottom: 4px; }
+        .matchup { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 12px 15px; border-radius: 12px; margin-bottom: 15px; font-weight: bold; border-left: 5px solid #38bdf8; }
+        .condition { font-size: 11px; background: #334155; padding: 4px 8px; border-radius: 20px; color: #cbd5e1; }
+        .prediction-card { background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); padding: 18px; border-radius: 12px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4); border: 1px solid #38bdf8; }
+        .prediction-card .fav { font-size: 22px; font-weight: 900; color: #ffffff; margin-bottom: 5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
         .prediction-card .prob { font-size: 15px; color: #e0f2fe; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .section-title { color: #94a3b8; font-size: 12px; margin-top: 20px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #334155; padding-bottom: 5px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .card { background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; }
-        .card-title { font-size: 11px; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
-        .card-value { font-size: 14px; font-weight: bold; }
-        .total-box { background: #311042; border: 1px solid #581c87; padding: 10px; border-radius: 10px; text-align: center; font-weight: bold; color: #f3e8ff; font-size: 13px; margin-bottom: 20px; }
-        footer { text-align: center; font-size: 10px; color: #64748b; margin-top: 20px; line-height: 1.4; }
-        .loader { text-align: center; padding: 40px; color: #38bdf8; font-size: 16px; font-weight: bold; }
+        .card-title { font-size: 11px; color: #64748b; text-transform: uppercase; margin-bottom: 6px; font-weight: bold; }
+        .stat-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+        .stat-val { font-weight: bold; color: #e2e8f0; }
+        .highlight { color: #38bdf8; }
+        .total-box { background: #311042; border: 1px solid #7e22ce; padding: 12px; border-radius: 10px; text-align: center; font-weight: bold; color: #f3e8ff; font-size: 14px; margin-bottom: 10px; }
+        footer { text-align: center; font-size: 10px; color: #64748b; margin-top: 20px; line-height: 1.5; }
+        .loader { text-align: center; padding: 50px; color: #38bdf8; font-size: 16px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container" id="app">
-    <div class="loader">⚙️ Analizando estadísticas de la MLB...</div>
+    <div class="loader">⚙️ Corriendo algoritmos y analizando métricas avanzadas...</div>
 </div>
 
 <script>
+    // Diccionario de "Park Factors" (Altura, Clima, Dimensiones)
+    // > 1.00 beneficia bateadores (ej. Altura de Colorado). < 1.00 beneficia pitchers (Nivel del mar).
+    const factoresEstadio = {
+        "Colorado Rockies": 1.15, // Altura extrema
+        "Cincinnati Reds": 1.11,
+        "Boston Red Sox": 1.08,
+        "Chicago Cubs": 1.05,
+        "Texas Rangers": 1.04, // Calor/Humedad
+        "San Diego Padres": 0.95, // Nivel del mar / Aire pesado
+        "Seattle Mariners": 0.94,
+        "Oakland Athletics": 0.94,
+        "San Francisco Giants": 0.96
+    };
+
     async function analizarPartidos() {
         try {
-            // 1. Obtener la fecha de hoy
             const hoy = new Date();
             const year = hoy.getFullYear();
             const month = String(hoy.getMonth() + 1).padStart(2, '0');
@@ -60,12 +56,11 @@
             const fechaAPI = `${year}-${month}-${day}`;
             const fechaVisual = `${day}/${month}/${year}`;
 
-            // 2. Conectar a la API de la MLB
-            const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${fechaAPI}&hydrate=probablePitcher,team(stats(type=season,season=${year}))`;
+            // URL con Hydrate extremo: Trae stats del equipo Y del pitcher abridor
+            const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${fechaAPI}&hydrate=probablePitcher(stats(type=season,season=${year})),team(stats(type=season,season=${year}))`;
             const respuesta = await fetch(url);
             const datos = await respuesta.json();
 
-            // 3. Verificar si hay juegos programados en la API
             if (!datos.dates || datos.dates.length === 0 || !datos.dates[0].games) {
                 mostrarPantallaVacia(fechaVisual);
                 return;
@@ -75,7 +70,6 @@
             let mayorProbabilidad = -1;
             let mejorJuego = null;
 
-            // 4. Analizar juego por juego
             juegos.forEach(juego => {
                 try {
                     const visita = juego.teams.away;
@@ -83,96 +77,104 @@
                     const nomVisita = visita.team.name;
                     const nomLocal = local.team.name;
                     const esNoche = juego.dayNight === 'night';
-
-                    // PLAN B: Extraer récords básicos (Wins/Losses) que SIEMPRE vienen en la API
-                    const wVisita = visita.leagueRecord?.wins || 0;
-                    const lVisita = visita.leagueRecord?.losses || 0;
-                    const wLocal = local.leagueRecord?.wins || 0;
-                    const lLocal = local.leagueRecord?.losses || 0;
-
-                    // PLAN A: Extracción segura de estadísticas (Usa "?" para no romper la app si la MLB falla)
+                    
+                    // 1. FACTOR ESTADIO (Altitud/Clima)
+                    const factorParque = factoresEstadio[nomLocal] || 1.00; // Si no es extremo, usa 1.00 neutral
+                    
+                    // 2. ESTADÍSTICAS OFENSIVAS BÁSICAS
                     const statsVisita = visita.team?.teamStats?.[0]?.splits?.[0]?.stat || {};
                     const statsLocal = local.team?.teamStats?.[0]?.splits?.[0]?.stat || {};
 
-                    // Si no hay carreras oficiales, usamos una matemática de respaldo (Basada en Wins/Losses)
-                    const runsVisita = statsVisita.runs || (wVisita * 4.5); 
-                    const juegosVisita = statsVisita.gamesPlayed || (wVisita + lVisita) || 1;
-                    const permitidasVisita = statsVisita.runsAllowed || (lVisita * 4.5);
+                    const runsVisita = statsVisita.runs || (visita.leagueRecord.wins * 4.5); 
+                    const juegosVisita = statsVisita.gamesPlayed || 1;
+                    const runsLocal = statsLocal.runs || (local.leagueRecord.wins * 4.5);
+                    const juegosLocal = statsLocal.gamesPlayed || 1;
 
-                    const runsLocal = statsLocal.runs || (wLocal * 4.5);
-                    const juegosLocal = statsLocal.gamesPlayed || (wLocal + lLocal) || 1;
-                    const permitidasLocal = statsLocal.runsAllowed || (lLocal * 4.5);
+                    // 3. MÉTRICAS AVANZADAS (OPS) - Eficiencia Real Ofensiva
+                    // OPS Promedio de la liga es ~0.720
+                    const opsVisita = parseFloat(statsVisita.ops) || 0.720;
+                    const opsLocal = parseFloat(statsLocal.ops) || 0.720;
 
-                    const promAnotadasVisita = runsVisita / juegosVisita;
-                    const promPermitidasVisita = permitidasVisita / juegosVisita;
-                    const promAnotadasLocal = runsLocal / juegosLocal;
-                    const promPermitidasLocal = permitidasLocal / juegosLocal;
+                    // Ajuste de carreras basado en OPS
+                    const promAnotadasVisita = (runsVisita / juegosVisita) * (opsVisita / 0.720);
+                    const promAnotadasLocal = (runsLocal / juegosLocal) * (opsLocal / 0.720);
 
-                    // Lanzadores Probables
-                    const pitcherVisita = visita.probablePitcher ? visita.probablePitcher.fullName : 'TBD';
-                    const brazoVisita = visita.probablePitcher?.pitchHand ? visita.probablePitcher.pitchHand.code : '-';
-                    const pitcherLocal = local.probablePitcher ? local.probablePitcher.fullName : 'TBD';
-                    const brazoLocal = local.probablePitcher?.pitchHand ? local.probablePitcher.pitchHand.code : '-';
+                    // 4. MÉTRICAS DE PITCHEO AVANZADO (ERA + Bullpen)
+                    const pitcherVisitaData = visita.probablePitcher;
+                    const pitcherLocalData = local.probablePitcher;
+                    
+                    const nomPVisita = pitcherVisitaData ? pitcherVisitaData.fullName : 'TBD';
+                    const nomPLocal = pitcherLocalData ? pitcherLocalData.fullName : 'TBD';
 
-                    // Matemáticas: Carreras Esperadas
-                    const expVisita = (promAnotadasVisita + promPermitidasLocal) / 2;
-                    const expLocal = (promAnotadasLocal + promPermitidasVisita) / 2;
+                    // Extraemos ERA directamente de la API si existe, sino usamos 4.50 (promedio liga)
+                    const eraPVisita = parseFloat(pitcherVisitaData?.stats?.[0]?.splits?.[0]?.stat?.era) || parseFloat(statsVisita.era) || 4.50;
+                    const eraPLocal = parseFloat(pitcherLocalData?.stats?.[0]?.splits?.[0]?.stat?.era) || parseFloat(statsLocal.era) || 4.50;
 
-                    // Matemáticas: Teorema Pitagórico (^1.83)
+                    const runsPermitidasVisita = statsVisita.runsAllowed / juegosVisita || 4.5;
+                    const runsPermitidasLocal = statsLocal.runsAllowed / juegosLocal || 4.5;
+
+                    // BLEND: 60% peso al abridor (ERA), 40% peso al bullpen/defensa (Runs Allowed Team)
+                    const defensaVisitaReal = (eraPVisita * 0.6) + (runsPermitidasVisita * 0.4);
+                    const defensaLocalReal = (eraPLocal * 0.6) + (runsPermitidasLocal * 0.4);
+
+                    // 5. CÁLCULO FINAL DE CARRERAS ESPERADAS (Con Factor Parque)
+                    let expVisita = ((promAnotadasVisita + defensaLocalReal) / 2) * factorParque;
+                    let expLocal = ((promAnotadasLocal + defensaVisitaReal) / 2) * factorParque;
+
+                    // 6. TEOREMA PITAGÓRICO MODIFICADO (^1.83)
                     const pythVisita = Math.pow(expVisita, 1.83);
                     const pythLocal = Math.pow(expLocal, 1.83);
 
-                    let pctVisita = 0.5;
-                    if ((pythVisita + pythLocal) > 0) {
-                        pctVisita = pythVisita / (pythVisita + pythLocal);
-                    }
+                    let pctVisita = pythVisita / (pythVisita + pythLocal);
                     let pctLocal = 1 - pctVisita;
 
-                    // Ajuste de Localía (+2% para el de casa)
-                    pctLocal += 0.02;
-                    pctVisita -= 0.02;
+                    // 7. VARIABLES DE CONTEXTO
+                    pctLocal += 0.03; // +3% Home Field Advantage estándar
+                    pctVisita -= 0.03;
+                    
+                    // Ajuste Día/Noche (Algunos equipos batean peor de día)
+                    if (!esNoche) {
+                        expVisita *= 0.98; // Se anotan ligeramente menos carreras de día por sombras
+                        expLocal *= 0.98;
+                    }
 
                     const diferencia = Math.abs(pctLocal - pctVisita);
 
-                    // Elegir el mejor juego
+                    // Guardar el favorito indiscutible
                     if (diferencia > mayorProbabilidad) {
                         mayorProbabilidad = diferencia;
                         mejorJuego = {
                             fecha: fechaVisual,
-                            visita: nomVisita,
-                            local: nomLocal,
+                            visita: nomVisita, local: nomLocal,
                             horario: esNoche ? "Noche 🌙" : "Día ☀️",
                             favorito: pctLocal > pctVisita ? nomLocal : nomVisita,
                             probabilidad: Math.max(pctLocal, pctVisita) * 100,
-                            carreras_visita: expVisita,
-                            carreras_local: expLocal,
+                            carreras_visita: expVisita, carreras_local: expLocal,
                             total: expVisita + expLocal,
-                            p_visita: pitcherVisita, b_visita: brazoVisita,
-                            p_local: pitcherLocal, b_local: brazoLocal
+                            p_visita: nomPVisita, era_visita: eraPVisita.toFixed(2), ops_visita: opsVisita.toFixed(3),
+                            p_local: nomPLocal, era_local: eraPLocal.toFixed(2), ops_local: opsLocal.toFixed(3),
+                            factor: factorParque
                         };
                     }
                 } catch (e) {
-                    console.error("Faltan datos en un partido, omitiendo...", e);
+                    console.error("Error en un juego", e);
                 }
             });
 
-            // 5. Dibujar en la pantalla
             if (mejorJuego) {
                 mostrarMejorJuego(mejorJuego);
             } else {
                 mostrarPantallaVacia(fechaVisual);
             }
-
         } catch (error) {
-            console.error("Error global:", error);
-            document.getElementById('app').innerHTML = `<div style="text-align: center; padding: 30px;"><h2>❌ Error de conexión</h2><p>Intenta recargar la página.</p></div>`;
+            document.getElementById('app').innerHTML = `<h2 style="text-align:center;">❌ Error al analizar</h2>`;
         }
     }
 
     function mostrarMejorJuego(d) {
         document.getElementById('app').innerHTML = `
-            <h1>⚾ MLB Predictor ⚾</h1>
-            <div class="date">Selección en vivo del día • ${d.fecha}</div>
+            <h1>⚾ MLB Predictor Pro ⚾</h1>
+            <div class="date">Análisis Moneyball • ${d.fecha}</div>
             
             <div class="matchup">
                 <div>${d.visita} <span style="color:#64748b; font-size:12px;">@</span> ${d.local}</div>
@@ -180,44 +182,46 @@
             </div>
 
             <div class="prediction-card">
-                <div style="font-size: 11px; text-transform: uppercase; color: #bae6fd; letter-spacing: 1px; margin-bottom: 4px;">Mayor ventaja estadística</div>
+                <div style="font-size: 11px; text-transform: uppercase; color: #bae6fd; letter-spacing: 1px; margin-bottom: 4px;">Pico de Ventaja Estadística</div>
                 <div class="fav">🏆 ${d.favorito}</div>
-                <div class="prob">Probabilidad de ganar: <strong>${d.probabilidad.toFixed(1)}%</strong></div>
+                <div class="prob">Win Probability: <strong>${d.probabilidad.toFixed(1)}%</strong></div>
             </div>
 
-            <div class="section-title">🔥 Carreras Esperadas (Proyección)</div>
+            <div class="total-box">
+                🎯 Total Carreras Proyectadas (O/U): <span style="font-size: 18px; color:#38bdf8;">${d.total.toFixed(1)}</span>
+            </div>
+
+            <div class="section-title">📊 Desglose Analítico (Visita vs Local)</div>
             <div class="grid">
                 <div class="card" style="border-top: 3px solid #ef4444;">
                     <div class="card-title">${d.visita}</div>
-                    <div class="card-value">${d.carreras_visita.toFixed(1)} Runs</div>
+                    <div class="stat-row"><span>Carreras Exp:</span> <span class="stat-val">${d.carreras_visita.toFixed(2)}</span></div>
+                    <div class="stat-row"><span>Poder (OPS):</span> <span class="stat-val highlight">${d.ops_visita}</span></div>
+                    <div style="margin-top:8px; border-top:1px solid #334155; padding-top:6px;">
+                        <div style="font-size:10px; color:#94a3b8;">ABRIDOR</div>
+                        <div class="stat-row" style="font-size:11px;"><span>${d.p_visita}</span></div>
+                        <div class="stat-row"><span>ERA Real:</span> <span class="stat-val">${d.era_visita}</span></div>
+                    </div>
                 </div>
+
                 <div class="card" style="border-top: 3px solid #10b981;">
                     <div class="card-title">${d.local}</div>
-                    <div class="card-value">${d.carreras_local.toFixed(1)} Runs</div>
+                    <div class="stat-row"><span>Carreras Exp:</span> <span class="stat-val">${d.carreras_local.toFixed(2)}</span></div>
+                    <div class="stat-row"><span>Poder (OPS):</span> <span class="stat-val highlight">${d.ops_local}</span></div>
+                    <div style="margin-top:8px; border-top:1px solid #334155; padding-top:6px;">
+                        <div style="font-size:10px; color:#94a3b8;">ABRIDOR</div>
+                        <div class="stat-row" style="font-size:11px;"><span>${d.p_local}</span></div>
+                        <div class="stat-row"><span>ERA Real:</span> <span class="stat-val">${d.era_local}</span></div>
+                    </div>
                 </div>
             </div>
             
-            <div class="total-box">
-                📊 Total carreras proyectadas (Over/Under): ${d.total.toFixed(1)}
-            </div>
-
-            <div class="section-title">🧢 Lanzadores Abridores</div>
-            <div class="grid">
-                <div class="card">
-                    <div class="card-title">Visita</div>
-                    <div class="card-value" style="font-size:13px;">${d.p_visita}</div>
-                    <div style="font-size:10px; color:#64748b; margin-top:2px;">Brazo: ${d.b_visita}</div>
-                </div>
-                <div class="card">
-                    <div class="card-title">Local</div>
-                    <div class="card-value" style="font-size:13px;">${d.p_local}</div>
-                    <div style="font-size:10px; color:#64748b; margin-top:2px;">Brazo: ${d.b_local}</div>
-                </div>
+            <div style="text-align:center; font-size:11px; color:#94a3b8; background:#1e293b; padding:8px; border-radius:8px; border:1px dashed #475569;">
+                🏟️ <strong>Factor de Parque (Altitud/Clima):</strong> Multiplicador x${d.factor.toFixed(2)}
             </div>
 
             <footer>
-                Se ejecuta en vivo desde tu navegador.<br>
-                Basado en el Teorema Pitagórico de Sabermetría. ¡Usa con responsabilidad!
+                Calculando: OPS Equipo | ERA del Abridor (60% peso) | Carreras Permitidas Bullpen (40% peso) | Altura del Estadio | Home Field Advantage (+3%).
             </footer>
         `;
     }
@@ -226,17 +230,13 @@
         document.getElementById('app').innerHTML = `
             <div style="text-align: center; padding: 30px;">
                 <h1>⚾ MLB Predictor ⚾</h1>
-                <p style="font-size: 14px; color: #94a3b8;">Fecha: ${fecha}</p>
-                <p>No se encontraron partidos o estadísticas suficientes en la MLB hoy.</p>
+                <p>No se encontraron datos o partidos para hoy.</p>
             </div>
         `;
     }
 
-    // Arrancar el análisis en cuanto carga la página
     window.onload = analizarPartidos;
-    
 </script>
 
 </body>
 </html>
-        
