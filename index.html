@@ -2,106 +2,83 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Sabermétrico Pro - Final</title>
+    <title>Scanner Sabermétrico Total</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #121212; color: #ffffff; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .app-container { max-width: 480px; width: 100%; background-color: #1e1e1e; padding: 20px; border-radius: 15px; box-shadow: 0px 4px 15px rgba(0,0,0,0.5); }
-        h1 { text-align: center; color: #4CAF50; font-size: 22px; margin-bottom: 20px; }
-        .seccion-scanner { background: #252525; border: 1px solid #FFD700; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
-        .scanner-titulo { color: #FFD700; font-size: 13px; font-weight: bold; text-transform: uppercase; text-align: center; margin-bottom: 8px; }
-        .selector-zona { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 15px; }
-        .input-pitcher { width: 48%; padding: 10px; border-radius: 8px; background: #2a2a2a; color: #FFD700; border: 1px solid #555; text-align: center; font-weight: bold; }
-        button { width: 100%; padding: 14px; background-color: #4CAF50; border: none; color: white; font-weight: bold; cursor: pointer; border-radius: 8px; margin-bottom: 20px; }
-        .tabla-comparativa { background-color: #252525; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
-        .fila { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #383838; }
-        .col-metrica { color: #aaa; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-        .col-equipo { font-size: 16px; font-weight: 500; }
-        .ganador { color: #4CAF50; }
-        .perdedor { color: #f44336; }
+        body { font-family: sans-serif; background: #121212; color: #fff; padding: 20px; display: flex; justify-content: center; }
+        .app-container { max-width: 480px; width: 100%; background: #1e1e1e; padding: 20px; border-radius: 15px; }
+        .box { background: #252525; border: 1px solid #444; border-radius: 10px; padding: 15px; margin-bottom: 20px; text-align: center; }
+        select, input { width: 100%; padding: 12px; margin: 5px 0; background: #333; color: white; border: 1px solid #555; border-radius: 5px; box-sizing: border-box; text-align: center; }
+        button { width: 100%; padding: 15px; background: #4CAF50; border: none; color: white; font-weight: bold; cursor: pointer; border-radius: 5px; }
     </style>
 </head>
 <body>
-
 <div class="app-container">
     <h1>⚾ Scanner Sabermétrico</h1>
-
-    <div class="seccion-scanner">
-        <h3 class="scanner-titulo">🔥 Top Pick de Hoy</h3>
-        <div id="scannerContenido" style="text-align:center; font-size:14px;">Escaneando cartelera...</div>
+    
+    <div class="box">
+        <div id="scannerContenido">Escaneando jornada hoy...</div>
     </div>
 
-    <span style="font-size:11px; color:#aaa; margin-bottom:5px; display:block;">Equipos</span>
-    <div class="selector-zona">
-        <select id="equipo1" onchange="actualizarPitchersManual()"></select>
-        <select id="equipo2" onchange="actualizarPitchersManual()"></select>
+    <select id="eq1" onchange="actualizarInterfaz()"></select>
+    <select id="eq2" onchange="actualizarInterfaz()"></select>
+    
+    <div style="display:flex; gap:10px;">
+        <input type="text" id="p1" readonly>
+        <input type="text" id="p2" readonly>
     </div>
 
-    <span style="font-size:11px; color:#aaa; margin-bottom:5px; display:block;">Lanzador Abridor [Brazo]</span>
-    <div class="selector-zona">
-        <input type="text" id="p1" class="input-pitcher" readonly>
-        <input type="text" id="p2" class="input-pitcher" readonly>
-    </div>
+    <button onclick="simular()">Calcular Probabilidad Ajustada</button>
 
-    <select id="horarioJuego" style="width:100%; padding:10px; margin-bottom:15px; background:#2a2a2a; color:white; border:1px solid #444; border-radius:8px;">
-        <option value="noche">🌃 Juego Nocturno (Ventaja Pitcheo)</option>
-        <option value="dia">☀️ Juego Diurno (Ventaja Bateo)</option>
-    </select>
-
-    <button onclick="compararEquiposManual()">Simular Partido</button>
-
-    <div id="panelPrediccion" style="display:none;" class="tabla-comparativa">
-        <div id="txtGanador" style="text-align:center; font-size:18px; color:#4CAF50; font-weight:bold;"></div>
-        <div id="txtCarreras" style="text-align:center; color:#FFD700; margin-top:10px;"></div>
+    <div id="panelResultados" class="box" style="display:none;">
+        <div id="txtGanador" style="color:#4CAF50; font-weight:bold; font-size:18px;"></div>
+        <div id="txtCarreras" style="margin-top:10px;"></div>
     </div>
 </div>
 
 <script>
     const datosMlb = {
-        "147": { name: "Yankees", brazo: "R", bateo: 0.252, ops: 0.768, era: 3.74, whip: 1.24 },
-        "119": { name: "Dodgers", brazo: "L", bateo: 0.265, ops: 0.795, era: 3.78, whip: 1.22 }
+        "147": { name: "Yankees", brazo: "R", bateo: 0.252, ops: 0.768, era: 3.74 },
+        "119": { name: "Dodgers", brazo: "L", bateo: 0.265, ops: 0.795, era: 3.78 }
     };
 
     window.onload = async () => {
-        const s1 = document.getElementById('equipo1');
-        const s2 = document.getElementById('equipo2');
+        const s1 = document.getElementById('eq1');
+        const s2 = document.getElementById('eq2');
         Object.keys(datosMlb).forEach(id => {
             s1.innerHTML += `<option value="${id}">${datosMlb[id].name}</option>`;
             s2.innerHTML += `<option value="${id}">${datosMlb[id].name}</option>`;
         });
-        await escanearJornada();
-    };
-
-    async function escanearJornada() {
+        
+        // Cargar calendario real
         try {
             const res = await fetch('https://statsapi.mlb.com/api/v1/schedule?sportId=1');
             const data = await res.json();
             const juego = data.dates[0].games[0];
             const p1 = juego.teams.away.probablePitcher;
             const p2 = juego.teams.home.probablePitcher;
-            
-            document.getElementById('p1').value = p1 ? `${p1.fullName} [${p1.pitchHand.code}]` : "Bullpen [?]";
-            document.getElementById('p2').value = p2 ? `${p2.fullName} [${p2.pitchHand.code}]` : "Bullpen [?]";
-            document.getElementById('scannerContenido').innerText = `${juego.teams.away.team.name} vs ${juego.teams.home.team.name}`;
-        } catch(e) { document.getElementById('scannerContenido').innerText = "Modo Local Activo"; }
+            document.getElementById('scannerContenido').innerHTML = `<b>${juego.teams.away.team.name} vs ${juego.teams.home.team.name}</b><br>Abridores: ${p1?.fullName||'TBD'} [${p1?.pitchHand.code||'?'}] vs ${p2?.fullName||'TBD'} [${p2?.pitchHand.code||'?'}]`;
+            document.getElementById('p1').value = `Brazo: [${p1?.pitchHand.code || '?'}]`;
+            document.getElementById('p2').value = `Brazo: [${p2?.pitchHand.code || '?'}]`;
+        } catch(e) { document.getElementById('scannerContenido').innerText = "Modo Local: Esperando selección manual."; }
+    };
+
+    function actualizarInterfaz() {
+        const e1 = datosMlb[document.getElementById('eq1').value];
+        const e2 = datosMlb[document.getElementById('eq2').value];
+        document.getElementById('p1').value = `Brazo: [${e1.brazo}]`;
+        document.getElementById('p2').value = `Brazo: [${e2.brazo}]`;
     }
 
-    function actualizarPitchersManual() {
-        // En un caso real, aquí consultarías un mapa de abridores detectados
-        document.getElementById('p1').value = "Abridor [R]";
-        document.getElementById('p2').value = "Abridor [L]";
-    }
-
-    function compararEquiposManual() {
-        const p1Brazo = document.getElementById('p1').value.includes("L") ? "L" : "R";
-        const p2Brazo = document.getElementById('p2').value.includes("L") ? "L" : "R";
+    function simular() {
+        const e1 = datosMlb[document.getElementById('eq1').value];
+        const e2 = datosMlb[document.getElementById('eq2').value];
         
-        // Lógica de Platoon: Si el brazo del pitcher es Zurdo [L], aplicamos factor de dificultad
-        let factorPlatoon = (p1Brazo === "L") ? 1.05 : 1.0;
-
-        document.getElementById('panelPrediccion').style.display = "block";
-        document.getElementById('txtGanador').innerText = "🏆 Predicción: " + (factorPlatoon > 1 ? "Dodgers" : "Yankees");
-        document.getElementById('txtCarreras').innerText = "Total estimado: " + (7.5 * factorPlatoon).toFixed(1) + " Carreras";
+        // Lógica de Platoon: Si el equipo 1 enfrenta a un pitcher zurdo (L), hay un ajuste de 5%
+        let factor = (e1.brazo === "L") ? 1.05 : 1.0;
+        
+        document.getElementById('panelResultados').style.display = "block";
+        document.getElementById('txtGanador').innerText = "🏆 Ganador: " + (e1.bateo > e2.bateo ? e1.name : e2.name);
+        document.getElementById('txtCarreras').innerText = "Carreras estimadas: " + (7.0 * factor).toFixed(1);
     }
 </script>
 </body>
