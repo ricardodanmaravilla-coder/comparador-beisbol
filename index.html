@@ -34,14 +34,13 @@
 
 <script>
     // Diccionario de "Park Factors" (Altura, Clima, Dimensiones)
-    // > 1.00 beneficia bateadores (ej. Altura de Colorado). < 1.00 beneficia pitchers (Nivel del mar).
     const factoresEstadio = {
-        "Colorado Rockies": 1.15, // Altura extrema
+        "Colorado Rockies": 1.15,
         "Cincinnati Reds": 1.11,
         "Boston Red Sox": 1.08,
         "Chicago Cubs": 1.05,
-        "Texas Rangers": 1.04, // Calor/Humedad
-        "San Diego Padres": 0.95, // Nivel del mar / Aire pesado
+        "Texas Rangers": 1.04, 
+        "San Diego Padres": 0.95,
         "Seattle Mariners": 0.94,
         "Oakland Athletics": 0.94,
         "San Francisco Giants": 0.96
@@ -56,7 +55,7 @@
             const fechaAPI = `${year}-${month}-${day}`;
             const fechaVisual = `${day}/${month}/${year}`;
 
-            // URL con Hydrate extremo: Trae stats del equipo Y del pitcher abridor
+            // URL con Hydrate extremo
             const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${fechaAPI}&hydrate=probablePitcher(stats(type=season,season=${year})),team(stats(type=season,season=${year}))`;
             const respuesta = await fetch(url);
             const datos = await respuesta.json();
@@ -78,69 +77,85 @@
                     const nomLocal = local.team.name;
                     const esNoche = juego.dayNight === 'night';
                     
-                    // 1. FACTOR ESTADIO (Altitud/Clima)
-                    const factorParque = factoresEstadio[nomLocal] || 1.00; // Si no es extremo, usa 1.00 neutral
+                    const factorParque = factoresEstadio[nomLocal] || 1.00; 
                     
-                    // 2. ESTADÍSTICAS OFENSIVAS BÁSICAS
+                    // Récords básicos como salvavidas
+                    const wVisita = visita.leagueRecord?.wins || 0;
+                    const lVisita = visita.leagueRecord?.losses || 0;
+                    const wLocal = local.leagueRecord?.wins || 0;
+                    const lLocal = local.leagueRecord?.losses || 0;
+
                     const statsVisita = visita.team?.teamStats?.[0]?.splits?.[0]?.stat || {};
                     const statsLocal = local.team?.teamStats?.[0]?.splits?.[0]?.stat || {};
 
-                    const runsVisita = statsVisita.runs || (visita.leagueRecord.wins * 4.5); 
-                    const juegosVisita = statsVisita.gamesPlayed || 1;
-                    const runsLocal = statsLocal.runs || (local.leagueRecord.wins * 4.5);
-                    const juegosLocal = statsLocal.gamesPlayed || 1;
+                    // 🐛 BUG CORREGIDO: Cálculos seguros de partidos jugados
+                    const juegosVisita = statsVisita.gamesPlayed || (wVisita + lVisita) || 1;
+                    const juegosLocal = statsLocal.gamesPlayed || (wLocal + lLocal) || 1;
 
-                    // 3. MÉTRICAS AVANZADAS (OPS) - Eficiencia Real Ofensiva
-                    // OPS Promedio de la liga es ~0.720
+                    // Carreras totales seguras
+                    const runsVisita = statsVisita.runs || (wVisita * 4.5);
+                    const runsLocal = statsLocal.runs || (wLocal * 4.5);
+                    const permitidasTotalesVisita = statsVisita.runsAllowed || (lVisita * 4.5);
+                    const permitidasTotalesLocal = statsLocal.runsAllowed || (lLocal * 4.5);
+
+                    // MÉTRICAS AVANZADAS (OPS)
                     const opsVisita = parseFloat(statsVisita.ops) || 0.720;
                     const opsLocal = parseFloat(statsLocal.ops) || 0.720;
 
-                    // Ajuste de carreras basado en OPS
+                    // Ajuste de carreras basado en el promedio y el OPS
                     const promAnotadasVisita = (runsVisita / juegosVisita) * (opsVisita / 0.720);
                     const promAnotadasLocal = (runsLocal / juegosLocal) * (opsLocal / 0.720);
 
-                    // 4. MÉTRICAS DE PITCHEO AVANZADO (ERA + Bullpen)
+                    // PITCHEO AVANZADO (ERA + Bullpen)
                     const pitcherVisitaData = visita.probablePitcher;
                     const pitcherLocalData = local.probablePitcher;
                     
                     const nomPVisita = pitcherVisitaData ? pitcherVisitaData.fullName : 'TBD';
                     const nomPLocal = pitcherLocalData ? pitcherLocalData.fullName : 'TBD';
 
-                    // Extraemos ERA directamente de la API si existe, sino usamos 4.50 (promedio liga)
-                    const eraPVisita = parseFloat(pitcherVisitaData?.stats?.[0]?.splits?.[0]?.stat?.era) || parseFloat(statsVisita.era) || 4.50;
-                    const eraPLocal = parseFloat(pitcherLocalData?.stats?.[0]?.splits?.[0]?.stat?.era) || parseFloat(statsLocal.era) || 4.50;
+                    let eraPVisita = parseFloat(pitcherVisitaData?.stats?.[0]?.splits?.[0]?.stat?.era) || parseFloat(statsVisita.era) || 4.50;
+                    let eraPLocal = parseFloat(pitcherLocalData?.stats?.[0]?.splits?.[0]?.stat?.era) || parseFloat(statsLocal.era) || 4.50;
 
-                    const runsPermitidasVisita = statsVisita.runsAllowed / juegosVisita || 4.5;
-                    const runsPermitidasLocal = statsLocal.runsAllowed / juegosLocal || 4.5;
+                    // 🛡️ SEGURO ANTI-ERRORES: Evitar ERAs infinitos de pitchers novatos
+                    if (eraPVisita > 8.50) eraPVisita = 8.50;
+                    if (eraPVisita < 1.00) eraPVisita = 2.50;
+                    if (eraPLocal > 8.50) eraPLocal = 8.50;
+                    if (eraPLocal < 1.00) eraPLocal = 2.50;
 
-                    // BLEND: 60% peso al abridor (ERA), 40% peso al bullpen/defensa (Runs Allowed Team)
-                    const defensaVisitaReal = (eraPVisita * 0.6) + (runsPermitidasVisita * 0.4);
-                    const defensaLocalReal = (eraPLocal * 0.6) + (runsPermitidasLocal * 0.4);
+                    const promPermitidasVisita = permitidasTotalesVisita / juegosVisita;
+                    const promPermitidasLocal = permitidasTotalesLocal / juegosLocal;
 
-                    // 5. CÁLCULO FINAL DE CARRERAS ESPERADAS (Con Factor Parque)
+                    // BLEND: 60% abridor (ERA), 40% bullpen/defensa
+                    const defensaVisitaReal = (eraPVisita * 0.6) + (promPermitidasVisita * 0.4);
+                    const defensaLocalReal = (eraPLocal * 0.6) + (promPermitidasLocal * 0.4);
+
+                    // CÁLCULO FINAL DE CARRERAS ESPERADAS
                     let expVisita = ((promAnotadasVisita + defensaLocalReal) / 2) * factorParque;
                     let expLocal = ((promAnotadasLocal + defensaVisitaReal) / 2) * factorParque;
 
-                    // 6. TEOREMA PITAGÓRICO MODIFICADO (^1.83)
+                    // Validar que no haya datos corruptos
+                    if (isNaN(expVisita) || isNaN(expLocal)) return;
+
+                    // TEOREMA PITAGÓRICO (^1.83)
                     const pythVisita = Math.pow(expVisita, 1.83);
                     const pythLocal = Math.pow(expLocal, 1.83);
 
                     let pctVisita = pythVisita / (pythVisita + pythLocal);
                     let pctLocal = 1 - pctVisita;
 
-                    // 7. VARIABLES DE CONTEXTO
-                    pctLocal += 0.03; // +3% Home Field Advantage estándar
+                    // CONTEXTO: Localía
+                    pctLocal += 0.03; 
                     pctVisita -= 0.03;
                     
-                    // Ajuste Día/Noche (Algunos equipos batean peor de día)
+                    // CONTEXTO: Día/Noche
                     if (!esNoche) {
-                        expVisita *= 0.98; // Se anotan ligeramente menos carreras de día por sombras
+                        expVisita *= 0.98; 
                         expLocal *= 0.98;
                     }
 
                     const diferencia = Math.abs(pctLocal - pctVisita);
 
-                    // Guardar el favorito indiscutible
+                    // Elegir el mejor partido
                     if (diferencia > mayorProbabilidad) {
                         mayorProbabilidad = diferencia;
                         mejorJuego = {
@@ -157,7 +172,7 @@
                         };
                     }
                 } catch (e) {
-                    console.error("Error en un juego", e);
+                    console.error("Error analizando un juego específico", e);
                 }
             });
 
@@ -167,7 +182,8 @@
                 mostrarPantallaVacia(fechaVisual);
             }
         } catch (error) {
-            document.getElementById('app').innerHTML = `<h2 style="text-align:center;">❌ Error al analizar</h2>`;
+            console.error(error);
+            document.getElementById('app').innerHTML = `<h2 style="text-align:center;">❌ Error al analizar API</h2>`;
         }
     }
 
@@ -196,7 +212,7 @@
                 <div class="card" style="border-top: 3px solid #ef4444;">
                     <div class="card-title">${d.visita}</div>
                     <div class="stat-row"><span>Carreras Exp:</span> <span class="stat-val">${d.carreras_visita.toFixed(2)}</span></div>
-                    <div class="stat-row"><span>Poder (OPS):</span> <span class="stat-val highlight">${d.ops_visita}</span></div>
+                    <div class="stat-row"><span>Poder (OPS):</span> <span class="stat-val" style="color:#38bdf8;">${d.ops_visita}</span></div>
                     <div style="margin-top:8px; border-top:1px solid #334155; padding-top:6px;">
                         <div style="font-size:10px; color:#94a3b8;">ABRIDOR</div>
                         <div class="stat-row" style="font-size:11px;"><span>${d.p_visita}</span></div>
@@ -207,7 +223,7 @@
                 <div class="card" style="border-top: 3px solid #10b981;">
                     <div class="card-title">${d.local}</div>
                     <div class="stat-row"><span>Carreras Exp:</span> <span class="stat-val">${d.carreras_local.toFixed(2)}</span></div>
-                    <div class="stat-row"><span>Poder (OPS):</span> <span class="stat-val highlight">${d.ops_local}</span></div>
+                    <div class="stat-row"><span>Poder (OPS):</span> <span class="stat-val" style="color:#38bdf8;">${d.ops_local}</span></div>
                     <div style="margin-top:8px; border-top:1px solid #334155; padding-top:6px;">
                         <div style="font-size:10px; color:#94a3b8;">ABRIDOR</div>
                         <div class="stat-row" style="font-size:11px;"><span>${d.p_local}</span></div>
@@ -236,6 +252,7 @@
     }
 
     window.onload = analizarPartidos;
+                    
 </script>
 
 </body>
