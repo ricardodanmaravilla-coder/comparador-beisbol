@@ -65,7 +65,7 @@
             const respuesta = await fetch(url);
             const datos = await respuesta.json();
 
-            // 3. Verificar si hay juegos
+            // 3. Verificar si hay juegos programados en la API
             if (!datos.dates || datos.dates.length === 0 || !datos.dates[0].games) {
                 mostrarPantallaVacia(fechaVisual);
                 return;
@@ -84,17 +84,24 @@
                     const nomLocal = local.team.name;
                     const esNoche = juego.dayNight === 'night';
 
-                    // Extraer Estadísticas
-                    const statsVisita = visita.team.teamStats[0].splits[0].stat;
-                    const statsLocal = local.team.teamStats[0].splits[0].stat;
+                    // PLAN B: Extraer récords básicos (Wins/Losses) que SIEMPRE vienen en la API
+                    const wVisita = visita.leagueRecord?.wins || 0;
+                    const lVisita = visita.leagueRecord?.losses || 0;
+                    const wLocal = local.leagueRecord?.wins || 0;
+                    const lLocal = local.leagueRecord?.losses || 0;
 
-                    const runsVisita = statsVisita.runs || 0;
-                    const juegosVisita = statsVisita.gamesPlayed || 1;
-                    const permitidasVisita = statsVisita.runsAllowed || 0;
+                    // PLAN A: Extracción segura de estadísticas (Usa "?" para no romper la app si la MLB falla)
+                    const statsVisita = visita.team?.teamStats?.[0]?.splits?.[0]?.stat || {};
+                    const statsLocal = local.team?.teamStats?.[0]?.splits?.[0]?.stat || {};
 
-                    const runsLocal = statsLocal.runs || 0;
-                    const juegosLocal = statsLocal.gamesPlayed || 1;
-                    const permitidasLocal = statsLocal.runsAllowed || 0;
+                    // Si no hay carreras oficiales, usamos una matemática de respaldo (Basada en Wins/Losses)
+                    const runsVisita = statsVisita.runs || (wVisita * 4.5); 
+                    const juegosVisita = statsVisita.gamesPlayed || (wVisita + lVisita) || 1;
+                    const permitidasVisita = statsVisita.runsAllowed || (lVisita * 4.5);
+
+                    const runsLocal = statsLocal.runs || (wLocal * 4.5);
+                    const juegosLocal = statsLocal.gamesPlayed || (wLocal + lLocal) || 1;
+                    const permitidasLocal = statsLocal.runsAllowed || (lLocal * 4.5);
 
                     const promAnotadasVisita = runsVisita / juegosVisita;
                     const promPermitidasVisita = permitidasVisita / juegosVisita;
@@ -103,9 +110,9 @@
 
                     // Lanzadores Probables
                     const pitcherVisita = visita.probablePitcher ? visita.probablePitcher.fullName : 'TBD';
-                    const brazoVisita = visita.probablePitcher && visita.probablePitcher.pitchHand ? visita.probablePitcher.pitchHand.code : '-';
+                    const brazoVisita = visita.probablePitcher?.pitchHand ? visita.probablePitcher.pitchHand.code : '-';
                     const pitcherLocal = local.probablePitcher ? local.probablePitcher.fullName : 'TBD';
-                    const brazoLocal = local.probablePitcher && local.probablePitcher.pitchHand ? local.probablePitcher.pitchHand.code : '-';
+                    const brazoLocal = local.probablePitcher?.pitchHand ? local.probablePitcher.pitchHand.code : '-';
 
                     // Matemáticas: Carreras Esperadas
                     const expVisita = (promAnotadasVisita + promPermitidasLocal) / 2;
@@ -121,7 +128,7 @@
                     }
                     let pctLocal = 1 - pctVisita;
 
-                    // Ajuste de Localía (+2%)
+                    // Ajuste de Localía (+2% para el de casa)
                     pctLocal += 0.02;
                     pctVisita -= 0.02;
 
@@ -158,7 +165,7 @@
 
         } catch (error) {
             console.error("Error global:", error);
-            document.getElementById('app').innerHTML = `<h2>❌ Error al conectar con MLB</h2><p>Intenta recargar la página más tarde.</p>`;
+            document.getElementById('app').innerHTML = `<div style="text-align: center; padding: 30px;"><h2>❌ Error de conexión</h2><p>Intenta recargar la página.</p></div>`;
         }
     }
 
@@ -220,13 +227,14 @@
             <div style="text-align: center; padding: 30px;">
                 <h1>⚾ MLB Predictor ⚾</h1>
                 <p style="font-size: 14px; color: #94a3b8;">Fecha: ${fecha}</p>
-                <p>Hoy no hay partidos programados o la API de la MLB aún no actualiza las estadísticas.</p>
+                <p>No se encontraron partidos o estadísticas suficientes en la MLB hoy.</p>
             </div>
         `;
     }
 
     // Arrancar el análisis en cuanto carga la página
     window.onload = analizarPartidos;
+    
 </script>
 
 </body>
